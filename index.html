@@ -136,6 +136,13 @@
                 <input type="range" name="release"></input>
                 <label name="release"></label> sec
             </div>
+            <div id="shaperParams" class="paramPane">
+                <a href="https://developer.mozilla.org/en-US/docs/Web/API/WaveShaperNode">DelayNode</a>
+                <h3>oversample</h3>
+                <label><input type="radio" name="oversample" value="none"></input> none</label><br>
+                <label><input type="radio" name="oversample" value="2x"></input> 4x</label><br>
+                <label><input type="radio" name="oversample" value="4x"></input> 2x</label><br>
+            </div>
             <div id="destParams" class="paramPane">
                 <a href="https://developer.mozilla.org/en-US/docs/Web/API/BiquadFilterNode">AudioDestinationNode</a>
                 <h3>maxChannelCount</h3>

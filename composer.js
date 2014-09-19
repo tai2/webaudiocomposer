@@ -69,9 +69,15 @@
             maxInstance : Number.MAX_VALUE,
             build : function() { return audioContext.createDynamicsCompressor(); }
         },
+        WaveShaper : {
+            label : 'shaper',
+            stockPos : {x : 180, y : 150},
+            maxInstance : Number.MAX_VALUE,
+            build : function() { return audioContext.createWaveShaper(); }
+        },
         AudioDestination : {
             label : 'dest',
-            stockPos : {x : 180, y : 150},
+            stockPos : {x : 300, y : 150},
             maxInstance : 1,
             build : function() { return audioContext.destination; }
         }
@@ -351,6 +357,8 @@
                 patch.node.start();
             } else if (patch.nodeType === 'Convolver') {
                 patch.node.buffer = impulseResponse(4,4,false);
+            } else if (patch.nodeType === 'WaveShaper') {
+                patch.node.curve = makeDistortionCurve(400);
             }
         }
         function cleanupNode() {
@@ -592,6 +600,21 @@
         return impulse;
     }
 
+    // c.f. http://stackoverflow.com/a/22313408
+    function makeDistortionCurve(amount) {
+        var k = typeof amount === 'number' ? amount : 50,
+            n_samples = 44100,
+            curve = new Float32Array(n_samples),
+            deg = Math.PI / 180,
+            i = 0,
+            x;
+        for ( ; i < n_samples; ++i ) {
+            x = i * 2 / n_samples - 1;
+            curve[i] = ( 3 + k ) * x * 20 * deg / ( Math.PI + k * Math.abs(x) );
+        }
+        return curve;
+    };
+
     function setupViews() {
 
         function oscillator() {
@@ -722,6 +745,16 @@
                 selectedPatch.node.release.value = event.target.value / RELEASE_SCALE;
             });
         }
+        function shaper() {
+            var node, i, inputs;
+            node = nodeSpec.WaveShaper.build();
+            inputs = document.querySelectorAll('#shaperParams input[name=oversample]');
+            for (i = 0; i < inputs.length; i++) {
+                inputs[i].addEventListener('change', function(event) {
+                    selectedPatch.node.oversample = event.target.value;
+                });
+            }
+        }
         function audioDestination() {
             document.querySelector('#destParams label[name=maxChannelCount]').innerText = audioContext.destination.maxChannelCount;
         }
@@ -732,6 +765,7 @@
         convolver();
         delay();
         compress();
+        shaper();
         audioDestination();
     }
 
@@ -770,6 +804,8 @@
             pane.querySelector('label[name=attack]').innerText = patch.node.attack.value;
             pane.querySelector('input[name=release]').value = patch.node.release.value * RELEASE_SCALE;
             pane.querySelector('label[name=release]').innerText = patch.node.release.value;
+        } else if (patch.nodeType === 'WaveShaper') {
+            pane.querySelector('input[value=\'' + patch.node.oversample + '\']').checked = 'checked';
         }
     }
 
