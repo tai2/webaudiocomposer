@@ -9,6 +9,7 @@
     var DELAY_TIME_SCALE = 1000;
     var ATTACK_SCALE = 1000;
     var RELEASE_SCALE = 1000;
+    var PLAYBACK_RATE_SCALE = 100;
 
     var stage, stockArea, compositeArea, activeConnection;
     var audioContext, mediaNode,  graphics;
@@ -25,7 +26,21 @@
             label : 'oscillator',
             stockPos : {x : 180, y : 50},
             maxInstance : Number.MAX_VALUE,
-            build : function() { return audioContext.createOscillator(); }
+            build : function() {
+                var node = audioContext.createOscillator();
+                node.start();
+                return node;
+            }
+        },
+        AudioBufferSource : {
+            label : 'buffer',
+            stockPos : null,
+            maxInstance : Number.MAX_VALUE,
+            build : function() {
+                var node = audioContext.createBufferSource();
+                node.loop = true;
+                return node;
+            }
         },
         Gain : {
             label : 'gain',
@@ -55,7 +70,11 @@
             label : 'convolve',
             stockPos : {x : 780, y : 50},
             maxInstance : Number.MAX_VALUE,
-            build : function() { return audioContext.createConvolver(); }
+            build : function() {
+                var node = audioContext.createConvolver();
+                node.buffer = impulseResponse(4, 4, false);
+                return node;
+            }
         },
         Delay : {
             label : 'delay',
@@ -73,7 +92,11 @@
             label : 'shaper',
             stockPos : {x : 180, y : 150},
             maxInstance : Number.MAX_VALUE,
-            build : function() { return audioContext.createWaveShaper(); }
+            build : function() {
+                var node = audioContext.createWaveShaper();
+                node.curve = makeDistortionCurve(400);
+                return node;
+            }
         },
         AudioDestination : {
             label : 'dest',
@@ -90,6 +113,61 @@
 
     function setupStage() {
         var type, patch, workspace;
+
+        function onDragOver(event) {
+            event.dataTransfer.dropEffect = 'copy';
+            event.stopPropagation();
+            event.preventDefault();
+        }
+        function onDrop(event) {
+            var files = event.dataTransfer.files;
+            var local = compositeArea.globalToLocal(
+                    event.hasOwnProperty('offsetX') ? event.offsetX : event.layerX,
+                    event.hasOwnProperty('offsetY') ? event.offsetY : event.layerY);
+            var patch, reader, loading;
+
+            if (0 < files.length) {
+                if (files[0].type.match('audio/.*')) {
+                    if (compositeArea.getBounds().includes(local.x, local.y)) {
+                        patch = Patch('AudioBufferSource', 'composite');
+                        patch.x = local.x;
+                        patch.y = local.y;
+                        patch.mouseEnabled = false;
+                        compositeArea.patches.addChild(patch);
+
+                        loading = new Text('loading', 'normal 18px sanserif', '#fff');
+                        loading.x = -(patch.getBounds().width - loading.getBounds().width) / 2;
+                        loading.y = -loading.getBounds().height / 2;
+                        loading.fadeOut = function() {
+                            Tween.get(loading).to({alpha: 0}, 200).call(loading.fadeIn);
+                        }
+                        loading.fadeIn = function() {
+                            Tween.get(loading).to({alpha: 1}, 200).call(loading.fadeOut);
+                        }
+                        loading.fadeOut();
+                        patch.addChild(loading);
+
+                        reader = new FileReader();
+                        reader.readAsArrayBuffer(files[0]);
+                        reader.onload = function(event) {
+                            audioContext.decodeAudioData(
+                                    event.target.result,
+                                    function(buffer) {
+                                        patch.removeChild(loading);
+                                        patch.mouseEnabled = true;
+                                        patch.node.buffer = buffer;
+                                        patch.node.start(0);
+                                    },
+                                    function() {
+                                        console.log('decoding error.');
+                                    });
+                        }
+                    }
+                    event.stopPropagation();
+                    event.preventDefault();
+                }
+            }
+        }
         
         window.AudioContext = window.AudioContext || window.webkitAudioContext;
         audioContext = new AudioContext();
@@ -111,10 +189,12 @@
         stage.addChild(stockArea);
 
         for (type in nodeSpec) {
-            patch = Patch(type);
-            patch.x = nodeSpec[type].stockPos.x;
-            patch.y = nodeSpec[type].stockPos.y;
-            stockArea.addChild(patch);
+            if (nodeSpec[type].stockPos) {
+                patch = Patch(type, 'stock');
+                patch.x = nodeSpec[type].stockPos.x;
+                patch.y = nodeSpec[type].stockPos.y;
+                stockArea.addChild(patch);
+            }
         }
 
         graphics = new createjs.Graphics();
@@ -122,6 +202,9 @@
         Ticker.timingMode = Ticker.RAF;
         Ticker.setFPS(60);
         Ticker.addEventListener('tick', onTick);
+
+        stage.canvas.addEventListener('dragover', onDragOver);
+        stage.canvas.addEventListener('drop', onDrop);
     }
 
     function onTick(event) {
@@ -233,13 +316,12 @@
         return area;
     }
 
-    function Patch(type) {
+    function Patch(type, place) {
         var patch, port, i;
         var label, x, y;
         var spec = nodeSpec[type];
 
         function onMouseDown1(event) {
-
             stockArea.removeChild(patch);
 
             stage.addChild(patch);
@@ -272,7 +354,7 @@
                 stage.removeChild(patch);
                 compositeArea.patches.addChild(patch);
 
-                newPatch = Patch(type);
+                newPatch = Patch(type, 'stock');
                 newPatch.x = spec.stockPos.x;
                 newPatch.y = spec.stockPos.y;
                 stockArea.addChild(newPatch);
@@ -350,22 +432,6 @@
             for (i = 0; i < patch.inputPorts.getNumChildren(); i++) {
                 patch.inputPorts.children[i].disconnect();
             }
-
-            cleanupNode();
-        }
-        function setupNode() {
-            if (patch.nodeType === 'Oscillator') {
-                patch.node.start();
-            } else if (patch.nodeType === 'Convolver') {
-                patch.node.buffer = impulseResponse(4,4,false);
-            } else if (patch.nodeType === 'WaveShaper') {
-                patch.node.curve = makeDistortionCurve(400);
-            }
-        }
-        function cleanupNode() {
-            if (patch.nodeType === 'Oscillator') {
-                patch.node.stop();
-            }
         }
 
         patch = new Container();
@@ -426,10 +492,13 @@
             }
         }
 
-        setupNode();
-
         Tween.get(patch).to({alpha : 1.0}, 200).call(function() {
-            patch.addEventListener('mousedown', onMouseDown1);
+            if (place === 'stock') {
+                patch.addEventListener('mousedown', onMouseDown1);
+            } else {
+                patch.addEventListener('pressmove', onPressMove2);
+                patch.addEventListener('pressup', onPressUp2);
+            }
         });
 
         return patch;
@@ -641,6 +710,17 @@
                 selectedPatch.node.detune.value = event.target.value;
             });
         }
+        function audioBuffer() {
+            var node, pane;
+            node = nodeSpec.AudioBufferSource.build();
+            pane = document.querySelector('#' + nodeSpec.AudioBufferSource.label + 'Params');
+            pane.querySelector('input[name=playbackRate]').min = node.playbackRate.minValue * PLAYBACK_RATE_SCALE;
+            pane.querySelector('input[name=playbackRate]').max = 8 * PLAYBACK_RATE_SCALE;
+            pane.querySelector('input[name=playbackRate]').addEventListener('change', function(event) {
+                pane.querySelector('label[name=playbackRate]').innerText = event.target.value / PLAYBACK_RATE_SCALE;
+                selectedPatch.node.playbackRate.value = event.target.value / PLAYBACK_RATE_SCALE;
+            });
+        }
         function gain() {
             var node, pane;
             node = nodeSpec.Gain.build();
@@ -761,6 +841,7 @@
         }
 
         oscillator();
+        audioBuffer();
         gain();
         biquadFilter();
         convolver();
@@ -778,6 +859,9 @@
             pane.querySelector('label[name=frequency]').innerText = patch.node.frequency.value;
             pane.querySelector('input[name=detune]').value = patch.node.detune.value;
             pane.querySelector('label[name=detune]').innerText = patch.node.detune.value;
+        } else if (patch.nodeType === 'AudioBufferSource') {
+            pane.querySelector('label[name=playbackRate]').innerText = patch.node.playbackRate.value;
+            pane.querySelector('input[name=playbackRate]').value = patch.node.playbackRate.value * PLAYBACK_RATE_SCALE;
         } else if (patch.nodeType === 'Gain') {
             pane.querySelector('input[name=gain]').value = patch.node.gain.value * GAIN_SCALE;
         } else if (patch.nodeType === 'BiquadFilter') {
