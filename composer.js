@@ -52,9 +52,16 @@
             pane : '#biquadFilterParams',
             build : function() { return audioContext.createBiquadFilter(); }
         },
+        Convolver : {
+            label : 'convolve',
+            stockPos : {x : 780, y : 50},
+            maxInstance : Number.MAX_VALUE,
+            pane : '#convolverParams',
+            build : function() { return audioContext.createConvolver(); }
+        },
         AudioDestination : {
             label : 'dest',
-            stockPos : {x : 780, y : 50},
+            stockPos : {x : 900, y : 50},
             maxInstance : 1,
             pane : '#audioDestinationParams',
             build : function() { return audioContext.destination; }
@@ -333,6 +340,8 @@
         function setupNode() {
             if (patch.nodeType === 'Oscillator') {
                 patch.node.start();
+            } else if (patch.nodeType === 'Convolver') {
+                patch.node.buffer = impulseResponse(4,4,false);
             }
         }
         function cleanupNode() {
@@ -556,6 +565,24 @@
                ((obj1_top <= obj2_top && obj2_top < obj1_bottom) || (obj1_top <= obj2_bottom && obj2_bottom < obj1_bottom));
     }
 
+    // c.f. http://stackoverflow.com/a/22538980
+    function impulseResponse(duration, decay, reverse) {
+        var sampleRate = audioContext.sampleRate;
+        var length = sampleRate * duration;
+        var impulse = audioContext.createBuffer(2, length, sampleRate);
+        var impulseL = impulse.getChannelData(0);
+        var impulseR = impulse.getChannelData(1);
+
+        if (!decay)
+            decay = 2.0;
+        for (var i = 0; i < length; i++){
+            var n = reverse ? length - i : i;
+            impulseL[i] = (Math.random() * 2 - 1) * Math.pow(1 - n / length, decay);
+            impulseR[i] = (Math.random() * 2 - 1) * Math.pow(1 - n / length, decay);
+        }
+        return impulse;
+    }
+
     function setupViews() {
 
         function oscillator() {
@@ -621,6 +648,17 @@
                 selectedPatch.node.gain.value = event.target.value;
             });
         }
+        function convolver() {
+            var i, inputs, node;
+            node = audioContext.createConvolver();
+            inputs = document.querySelectorAll('#convolverParams input[name=normalize]');
+            for (i = 0; i < inputs.length; i++) {
+                inputs[i].addEventListener('change', function(event) {
+                    selectedPatch.node.normalize = event.target.value === 'true';
+                    selectedPatch.node.buffer = impulseResponse(4,4,false);
+                });
+            }
+        }
         function audioDestination() {
             document.querySelector('#audioDestinationParams label[name=maxChannelCount]').innerText = audioContext.destination.maxChannelCount;
         }
@@ -628,6 +666,7 @@
         oscillator();
         gain();
         biquadFilter();
+        convolver();
         audioDestination();
     }
 
@@ -648,6 +687,8 @@
             document.querySelector('#biquadFilterParams label[name=detune]').innerText = patch.node.detune.value;
             document.querySelector('#biquadFilterParams input[name=Q]').value = patch.node.Q.value;
             document.querySelector('#biquadFilterParams input[name=gain]').value = patch.node.gain.value;
+        } else if (patch.nodeType === 'Convolver') {
+            document.querySelector('#convolverParams input[value=' + patch.node.normalize + ']').checked = 'checked';
         }
     }
 

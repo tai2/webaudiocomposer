@@ -60,7 +60,7 @@
             <div id="oscillatorParams" class="paramPane">
                 <a href="https://developer.mozilla.org/en-US/docs/Web/API/OscillatorNode">OscillatorNode</a>
                 <h3>type</h3>
-                <label><input type="radio" name="type" value="sine" checked="checked"></input> sine</label><br>
+                <label><input type="radio" name="type" value="sine"></input> sine</label><br>
                 <label><input type="radio" name="type" value="square"></input> square</label><br>
                 <label><input type="radio" name="type" value="sawtooth"></input> sawtooth</label><br>
                 <label><input type="radio" name="type" value="triangle"></input> triangle</label><br>
@@ -85,7 +85,7 @@
             <div id="biquadFilterParams" class="paramPane">
                 <a href="https://developer.mozilla.org/en-US/docs/Web/API/AudioDestinationNode">AudioDestinationNode</a>
                 <h3>type</h3>
-                <label><input type="radio" name="type" value="lowpass" checked="checked"></input> lowpass</label><br>
+                <label><input type="radio" name="type" value="lowpass"></input> lowpass</label><br>
                 <label><input type="radio" name="type" value="highpass"></input> highpass</label><br>
                 <label><input type="radio" name="type" value="bandpass"></input> bandpass</label><br>
                 <label><input type="radio" name="type" value="lowshelf"></input> lowshelf</label><br>
@@ -103,6 +103,12 @@
                 <input type="range" name="Q"></input>
                 <h3>gain</h3>
                 <input type="range" name="gain"></input>
+            </div>
+            <div id="convolverParams" class="paramPane">
+                <a href="https://developer.mozilla.org/en-US/docs/Web/API/ConvolverNode">ConvolverNode</a>
+                <h3>normalize</h3>
+                <label><input type="radio" name="normalize" value="true"></input> On</label>
+                <label><input type="radio" name="normalize" value="false"></input> Off</label><br>
             </div>
             <div id="audioDestinationParams" class="paramPane">
                 <a href="https://developer.mozilla.org/en-US/docs/Web/API/BiquadFilterNode">AudioDestinationNode</a>
