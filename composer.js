@@ -52,9 +52,15 @@
             maxInstance : Number.MAX_VALUE,
             build : function() { return audioContext.createConvolver(); }
         },
+        Delay : {
+            label : 'delay',
+            stockPos : {x : 900, y : 50},
+            maxInstance : Number.MAX_VALUE,
+            build : function() { return audioContext.createDelay(5); }
+        },
         AudioDestination : {
             label : 'dest',
-            stockPos : {x : 900, y : 50},
+            stockPos : {x : 60, y : 150},
             maxInstance : 1,
             build : function() { return audioContext.destination; }
         }
@@ -579,7 +585,7 @@
 
         function oscillator() {
             var i, inputs, node, pane;
-            node = audioContext.createOscillator();
+            node = nodeSpec.Oscillator.build();
             pane = document.querySelector('#' + nodeSpec.Oscillator.label + 'Params');
             inputs = pane.querySelectorAll('input[name=type]');
             for (i = 0; i < inputs.length; i++) {
@@ -602,7 +608,7 @@
         }
         function gain() {
             var node, pane;
-            node = audioContext.createGain();
+            node = nodeSpec.Gain.build();
             pane = document.querySelector('#' + nodeSpec.Gain.label + 'Params');
             pane.querySelector('input[name=gain]').min = node.gain.minValue * 100;
             pane.querySelector('input[name=gain]').max = node.gain.maxValue * 100;
@@ -612,7 +618,7 @@
         }
         function biquadFilter() {
             var i, inputs, node, pane;
-            node = audioContext.createBiquadFilter();
+            node = nodeSpec.BiquadFilter.build();
             pane = document.querySelector('#' + nodeSpec.BiquadFilter.label + 'Params');
             inputs = pane.querySelectorAll('input[name=type]');
             for (i = 0; i < inputs.length; i++) {
@@ -645,7 +651,7 @@
         }
         function convolver() {
             var i, inputs, node;
-            node = audioContext.createConvolver();
+            node = nodeSpec.Convolver.build();
             inputs = document.querySelectorAll('#convolverParams input[name=normalize]');
             for (i = 0; i < inputs.length; i++) {
                 inputs[i].addEventListener('change', function(event) {
@@ -653,6 +659,17 @@
                     selectedPatch.node.buffer = impulseResponse(4,4,false);
                 });
             }
+        }
+        function delay() {
+            var node, pane;
+            node = nodeSpec.Delay.build();
+            pane = document.querySelector('#' + nodeSpec.Delay.label + 'Params');
+            pane.querySelector('input[name=delayTime]').min = node.delayTime.minValue * 1000;
+            pane.querySelector('input[name=delayTime]').max = node.delayTime.maxValue * 1000;
+            pane.querySelector('input[name=delayTime]').addEventListener('change', function(event) {
+                pane.querySelector('label[name=delayTime]').innerText = event.target.value / 1000;
+                selectedPatch.node.delayTime.value = event.target.value / 1000;
+            });
         }
         function audioDestination() {
             document.querySelector('#destParams label[name=maxChannelCount]').innerText = audioContext.destination.maxChannelCount;
@@ -662,6 +679,7 @@
         gain();
         biquadFilter();
         convolver();
+        delay();
         audioDestination();
     }
 
@@ -685,6 +703,9 @@
             pane.querySelector('input[name=gain]').value = patch.node.gain.value;
         } else if (patch.nodeType === 'Convolver') {
             pane.querySelector('input[value=' + patch.node.normalize + ']').checked = 'checked';
+        } else if (patch.nodeType === 'Delay') {
+            pane.querySelector('input[name=delayTime]').value = patch.node.delayTime.value * 1000;
+            pane.querySelector('label[name=delayTime]').innerText = patch.node.delayTime.value;
         }
     }
 
