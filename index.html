@@ -54,7 +54,7 @@
     <body>
         <div id="inspector">
             <h2>Inspector</h2>
-            <div id="mediaElementAudioSourceParams" class="paramPane">
+            <div id="mediaParams" class="paramPane">
                 <a href="https://developer.mozilla.org/en-US/docs/Web/API/MediaElementAudioSourceNode">MediaElementAudioSourceNode</a>
             </div>
             <div id="oscillatorParams" class="paramPane">
@@ -76,13 +76,13 @@
                 <h3>gain</h3>
                 <input type="range" name="gain"></input>
             </div>
-            <div id="channelSplitterParams" class="paramPane">
+            <div id="splitParams" class="paramPane">
                 <a href="https://developer.mozilla.org/en-US/docs/Web/API/ChannelSplitterNode">ChannelSplitterNode</a>
             </div>
-            <div id="channelMergerParams" class="paramPane">
+            <div id="mergeParams" class="paramPane">
                 <a href="https://developer.mozilla.org/en-US/docs/Web/API/ChannelMergerNode">ChannelMergerNode</a>
             </div>
-            <div id="biquadFilterParams" class="paramPane">
+            <div id="biquadParams" class="paramPane">
                 <a href="https://developer.mozilla.org/en-US/docs/Web/API/AudioDestinationNode">AudioDestinationNode</a>
                 <h3>type</h3>
                 <label><input type="radio" name="type" value="lowpass"></input> lowpass</label><br>
@@ -104,13 +104,13 @@
                 <h3>gain</h3>
                 <input type="range" name="gain"></input>
             </div>
-            <div id="convolverParams" class="paramPane">
+            <div id="convolveParams" class="paramPane">
                 <a href="https://developer.mozilla.org/en-US/docs/Web/API/ConvolverNode">ConvolverNode</a>
                 <h3>normalize</h3>
                 <label><input type="radio" name="normalize" value="true"></input> On</label>
                 <label><input type="radio" name="normalize" value="false"></input> Off</label><br>
             </div>
-            <div id="audioDestinationParams" class="paramPane">
+            <div id="destParams" class="paramPane">
                 <a href="https://developer.mozilla.org/en-US/docs/Web/API/BiquadFilterNode">AudioDestinationNode</a>
                 <h3>maxChannelCount</h3>
                 <label name="maxChannelCount"></label>

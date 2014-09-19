@@ -14,56 +14,48 @@
             label : 'media',
             stockPos : {x : 60, y : 50},
             maxInstance : 1,
-            pane : '#mediaElementAudioSourceParams',
             build : function() { return mediaNode; }
         },
         Oscillator : {
             label : 'oscillator',
             stockPos : {x : 180, y : 50},
             maxInstance : Number.MAX_VALUE,
-            pane : '#oscillatorParams',
             build : function() { return audioContext.createOscillator(); }
         },
         Gain : {
             label : 'gain',
             stockPos : {x : 300, y : 50},
             maxInstance : Number.MAX_VALUE,
-            pane : '#gainParams',
             build : function() { return audioContext.createGain(); }
         },
         ChannelSplitter : {
             label : 'split',
             stockPos : {x : 420, y : 50},
             maxInstance : Number.MAX_VALUE,
-            pane : '#channelSplitterParams',
             build : function() { return audioContext.createChannelSplitter(); }
         },
         ChannelMerger : {
             label : 'merge',
             stockPos : {x : 540, y : 50},
             maxInstance : Number.MAX_VALUE,
-            pane : '#channelMergerParams',
             build : function() { return audioContext.createChannelMerger(); }
         },
         BiquadFilter : {
             label : 'biquad',
             stockPos : {x : 660, y : 50},
             maxInstance : Number.MAX_VALUE,
-            pane : '#biquadFilterParams',
             build : function() { return audioContext.createBiquadFilter(); }
         },
         Convolver : {
             label : 'convolve',
             stockPos : {x : 780, y : 50},
             maxInstance : Number.MAX_VALUE,
-            pane : '#convolverParams',
             build : function() { return audioContext.createConvolver(); }
         },
         AudioDestination : {
             label : 'dest',
             stockPos : {x : 900, y : 50},
             maxInstance : 1,
-            pane : '#audioDestinationParams',
             build : function() { return audioContext.destination; }
         }
     };
@@ -161,7 +153,7 @@
             local = area.globalToLocal(event.stageX, event.stageY);
             patch = getPatchUnderPoint(local.x, local.y);
             if (patch) {
-                selectedPane = document.querySelector(nodeSpec[patch.nodeType].pane);
+                selectedPane = document.querySelector('#' + nodeSpec[patch.nodeType].label + 'Params');
                 selectedPatch = patch;
                 refreshPane(patch);
             } else {
@@ -586,65 +578,68 @@
     function setupViews() {
 
         function oscillator() {
-            var i, inputs, node;
+            var i, inputs, node, pane;
             node = audioContext.createOscillator();
-            inputs = document.querySelectorAll('#oscillatorParams input[name=type]');
+            pane = document.querySelector('#' + nodeSpec.Oscillator.label + 'Params');
+            inputs = pane.querySelectorAll('input[name=type]');
             for (i = 0; i < inputs.length; i++) {
                 inputs[i].addEventListener('change', function(event) {
                     selectedPatch.node.type = event.target.value;
                 });
             }
-            document.querySelector('#oscillatorParams input[name=frequency]').min = node.frequency.minValue;
-            document.querySelector('#oscillatorParams input[name=frequency]').max = node.frequency.maxValue;
-            document.querySelector('#oscillatorParams input[name=frequency]').addEventListener('change', function(event) {
-                document.querySelector('#oscillatorParams label[name=frequency]').innerText = event.target.value;
+            pane.querySelector('input[name=frequency]').min = node.frequency.minValue;
+            pane.querySelector('input[name=frequency]').max = node.frequency.maxValue;
+            pane.querySelector('input[name=frequency]').addEventListener('change', function(event) {
+                pane.querySelector('label[name=frequency]').innerText = event.target.value;
                 selectedPatch.node.frequency.value = event.target.value;
             });
-            document.querySelector('#oscillatorParams input[name=detune]').min = node.detune.minValue;
-            document.querySelector('#oscillatorParams input[name=detune]').max = node.detune.maxValue;
-            document.querySelector('#oscillatorParams input[name=detune]').addEventListener('change', function(event) {
-                document.querySelector('#oscillatorParams label[name=detune]').innerText = event.target.value;
+            pane.querySelector('input[name=detune]').min = node.detune.minValue;
+            pane.querySelector('input[name=detune]').max = node.detune.maxValue;
+            pane.querySelector('input[name=detune]').addEventListener('change', function(event) {
+                pane.querySelector('label[name=detune]').innerText = event.target.value;
                 selectedPatch.node.detune.value = event.target.value;
             });
         }
         function gain() {
-            var node;
+            var node, pane;
             node = audioContext.createGain();
-            document.querySelector('#gainParams input[name=gain]').min = node.gain.minValue * 100;
-            document.querySelector('#gainParams input[name=gain]').max = node.gain.maxValue * 100;
-            document.querySelector('#gainParams input[name=gain]').addEventListener('change', function(event) {
+            pane = document.querySelector('#' + nodeSpec.Gain.label + 'Params');
+            pane.querySelector('input[name=gain]').min = node.gain.minValue * 100;
+            pane.querySelector('input[name=gain]').max = node.gain.maxValue * 100;
+            pane.querySelector('input[name=gain]').addEventListener('change', function(event) {
                 selectedPatch.node.gain.value = event.target.value / 100;
             });
         }
         function biquadFilter() {
-            var i, inputs, node;
+            var i, inputs, node, pane;
             node = audioContext.createBiquadFilter();
-            inputs = document.querySelectorAll('#biquadFilterParams input[name=type]');
+            pane = document.querySelector('#' + nodeSpec.BiquadFilter.label + 'Params');
+            inputs = pane.querySelectorAll('input[name=type]');
             for (i = 0; i < inputs.length; i++) {
                 inputs[i].addEventListener('change', function(event) {
                     selectedPatch.node.type = event.target.value;
                 });
             }
-            document.querySelector('#biquadFilterParams input[name=frequency]').min = node.frequency.minValue;
-            document.querySelector('#biquadFilterParams input[name=frequency]').max = node.frequency.maxValue;
-            document.querySelector('#biquadFilterParams input[name=frequency]').addEventListener('change', function(event) {
-                document.querySelector('#biquadFilterParams label[name=frequency]').innerText = event.target.value;
+            pane.querySelector('input[name=frequency]').min = node.frequency.minValue;
+            pane.querySelector('input[name=frequency]').max = node.frequency.maxValue;
+            pane.querySelector('input[name=frequency]').addEventListener('change', function(event) {
+                pane.querySelector('label[name=frequency]').innerText = event.target.value;
                 selectedPatch.node.frequency.value = event.target.value;
             });
-            document.querySelector('#biquadFilterParams input[name=detune]').min = node.detune.minValue;
-            document.querySelector('#biquadFilterParams input[name=detune]').max = node.detune.maxValue;
-            document.querySelector('#biquadFilterParams input[name=detune]').addEventListener('change', function(event) {
-                document.querySelector('#biquadFilterParams label[name=detune]').innerText = event.target.value;
+            pane.querySelector('input[name=detune]').min = node.detune.minValue;
+            pane.querySelector('input[name=detune]').max = node.detune.maxValue;
+            pane.querySelector('input[name=detune]').addEventListener('change', function(event) {
+                pane.querySelector('label[name=detune]').innerText = event.target.value;
                 selectedPatch.node.detune.value = event.target.value;
             });
-            document.querySelector('#biquadFilterParams input[name=Q]').min = node.Q.minValue;
-            document.querySelector('#biquadFilterParams input[name=Q]').max = node.Q.maxValue;
-            document.querySelector('#biquadFilterParams input[name=Q]').addEventListener('change', function(event) {
+            pane.querySelector('input[name=Q]').min = node.Q.minValue;
+            pane.querySelector('input[name=Q]').max = node.Q.maxValue;
+            pane.querySelector('input[name=Q]').addEventListener('change', function(event) {
                 selectedPatch.node.Q.value = event.target.value;
             });
-            document.querySelector('#biquadFilterParams input[name=gain]').min = node.gain.minValue;
-            document.querySelector('#biquadFilterParams input[name=gain]').max = node.gain.maxValue;
-            document.querySelector('#biquadFilterParams input[name=gain]').addEventListener('change', function(event) {
+            pane.querySelector('input[name=gain]').min = node.gain.minValue;
+            pane.querySelector('input[name=gain]').max = node.gain.maxValue;
+            pane.querySelector('input[name=gain]').addEventListener('change', function(event) {
                 selectedPatch.node.gain.value = event.target.value;
             });
         }
@@ -660,7 +655,7 @@
             }
         }
         function audioDestination() {
-            document.querySelector('#audioDestinationParams label[name=maxChannelCount]').innerText = audioContext.destination.maxChannelCount;
+            document.querySelector('#destParams label[name=maxChannelCount]').innerText = audioContext.destination.maxChannelCount;
         }
 
         oscillator();
@@ -671,24 +666,25 @@
     }
 
     function refreshPane(patch) {
+        var pane = document.querySelector('#' + nodeSpec[patch.nodeType].label + 'Params');
         if (patch.nodeType === 'Oscillator') {
-            document.querySelector('#oscillatorParams input[value=' + patch.node.type + ']').checked = 'checked';
-            document.querySelector('#oscillatorParams input[name=frequency]').value = patch.node.frequency.value;
-            document.querySelector('#oscillatorParams label[name=frequency]').innerText = patch.node.frequency.value;
-            document.querySelector('#oscillatorParams input[name=detune]').value = patch.node.detune.value;
-            document.querySelector('#oscillatorParams label[name=detune]').innerText = patch.node.detune.value;
+            pane.querySelector('input[value=' + patch.node.type + ']').checked = 'checked';
+            pane.querySelector('input[name=frequency]').value = patch.node.frequency.value;
+            pane.querySelector('label[name=frequency]').innerText = patch.node.frequency.value;
+            pane.querySelector('input[name=detune]').value = patch.node.detune.value;
+            pane.querySelector('label[name=detune]').innerText = patch.node.detune.value;
         } else if (patch.nodeType === 'Gain') {
-            document.querySelector('#gainParams input[name=gain]').value = patch.node.gain.value * 100;
+            pane.querySelector('input[name=gain]').value = patch.node.gain.value * 100;
         } else if (patch.nodeType === 'BiquadFilter') {
-            document.querySelector('#biquadFilterParams input[value=' + patch.node.type + ']').checked = 'checked';
-            document.querySelector('#biquadFilterParams input[name=frequency]').value = patch.node.frequency.value;
-            document.querySelector('#biquadFilterParams label[name=frequency]').innerText = patch.node.frequency.value;
-            document.querySelector('#biquadFilterParams input[name=detune]').value = patch.node.detune.value;
-            document.querySelector('#biquadFilterParams label[name=detune]').innerText = patch.node.detune.value;
-            document.querySelector('#biquadFilterParams input[name=Q]').value = patch.node.Q.value;
-            document.querySelector('#biquadFilterParams input[name=gain]').value = patch.node.gain.value;
+            pane.querySelector('input[value=' + patch.node.type + ']').checked = 'checked';
+            pane.querySelector('input[name=frequency]').value = patch.node.frequency.value;
+            pane.querySelector('label[name=frequency]').innerText = patch.node.frequency.value;
+            pane.querySelector('input[name=detune]').value = patch.node.detune.value;
+            pane.querySelector('label[name=detune]').innerText = patch.node.detune.value;
+            pane.querySelector('input[name=Q]').value = patch.node.Q.value;
+            pane.querySelector('input[name=gain]').value = patch.node.gain.value;
         } else if (patch.nodeType === 'Convolver') {
-            document.querySelector('#convolverParams input[value=' + patch.node.normalize + ']').checked = 'checked';
+            pane.querySelector('input[value=' + patch.node.normalize + ']').checked = 'checked';
         }
     }
 
