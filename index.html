@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>Web Audio Composer</title>
+        <style>
+
+            html {
+                height: 100%;
+                background-color: #434343;
+                background-image:linear-gradient(#434343, #282828)
+            }
+
+            body {
+                margin: 0;
+                overflow: hidden;
+                height: 100%;
+            }
+
+            h1#title {
+                position: absolute;
+                left: 30px;
+                top: 30px;
+                margin: 0;
+                font-size: 30pt;
+            }
+
+            div#workspace {
+                width: auto;
+                margin-right: 250px;
+                height: 100%;
+
+                /* CSS Background Grid Lines by Jason Delia
+                   http://codepen.io/jasonadelia/pen/DnrAe/ */
+                background-color: transparent;
+                background-image: linear-gradient(0deg, transparent 24%, rgba(255, 255, 255, .05) 25%, rgba(255, 255, 255, .05) 26%, transparent 27%, transparent 74%, rgba(255, 255, 255, .05) 75%, rgba(255, 255, 255, .05) 76%, transparent 77%, transparent), linear-gradient(90deg, transparent 24%, rgba(255, 255, 255, .05) 25%, rgba(255, 255, 255, .05) 26%, transparent 27%, transparent 74%, rgba(255, 255, 255, .05) 75%, rgba(255, 255, 255, .05) 76%, transparent 77%, transparent);
+                background-size: 50px 50px;
+            }
+
+            div#inspector {
+                width: 250px;
+                float: right;
+                height: 100%;
+                background-image: linear-gradient(#bbb, #999)
+            }
+
+            div.paramPane {
+                display: none;
+            }
+
+        </style>
+    </head>
+    <body>
+        <div id="inspector">
+            <h2>Inspector</h2>
+            <div id="mediaElementAudioSourceParams" class="paramPane">
+                <a href="https://developer.mozilla.org/en-US/docs/Web/API/MediaElementAudioSourceNode">MediaElementAudioSourceNode</a>
+            </div>
+            <div id="oscillatorParams" class="paramPane">
+                <a href="https://developer.mozilla.org/en-US/docs/Web/API/OscillatorNode">OscillatorNode</a>
+                <h3>type</h3>
+                <label><input type="radio" name="type" value="sine" checked="checked"></input> sine</label><br>
+                <label><input type="radio" name="type" value="square"></input> square</label><br>
+                <label><input type="radio" name="type" value="sawtooth"></input> sawtooth</label><br>
+                <label><input type="radio" name="type" value="triangle"></input> triangle</label><br>
+                <h3>frequency</h3>
+                <input type="range" name="frequency" min="1" max="3000" value="440"></input>
+                <label name="frequencyLabel">44100</label> Hz
+                <h3>detune</h3>
+                <input type="range" name="detune" min="0" max="1000" value="0"></input>
+                <label name="detuneLabel"></label> cents
+            </div>
+            <div id="gainParams" class="paramPane">
+                <a href="https://developer.mozilla.org/en-US/docs/Web/API/GainNode">GainNode</a>
+                <h3>gain</h3>
+                <input type="range" name="gain" min="0" max="100" value="1.0"></input>
+            </div>
+            <div id="channelSplitterParams" class="paramPane">
+                <a href="https://developer.mozilla.org/en-US/docs/Web/API/ChannelSplitterNode">ChannelSplitterNode</a>
+            </div>
+            <div id="channelMergerParams" class="paramPane">
+                <a href="https://developer.mozilla.org/en-US/docs/Web/API/ChannelMergerNode">ChannelMergerNode</a>
+            </div>
+            <div id="audioDestinationParams" class="paramPane">
+                <a href="https://developer.mozilla.org/en-US/docs/Web/API/AudioDestinationNode">AudioDestinationNode</a>
+                <h3>maxChannelCount</h3>
+                <label name="maxChannelCountLabel"></label>
+            </div>
+        </div>
+        <div id="workspace">
+            <h1 id="title">Web Audio Composer</h1>
+            <canvas id="mainStage"></canvas>
+        </div>
+        <audio id="music" src="music.mp3" autoplay loop></audio>
+        <script>
+            createjs = window;
+        </script>
+        <script src="createjs-2013.12.12.min.js"></script>
+        <script src="composer.js"></script>
+    </body>
+</html>
+
