@@ -4,6 +4,9 @@
     var REMOVE_BUTTON_SIZE = 8;
     var PATCH_WIDTH = 100;
     var PATCH_HEIGHT = 80;
+    var GAIN_SCALE = 100;
+    var Q_SCALE = 10000;
+    var DELAY_TIME_SCALE = 1000;
 
     var stage, stockArea, compositeArea, activeConnection;
     var audioContext, mediaNode,  graphics;
@@ -610,10 +613,10 @@
             var node, pane;
             node = nodeSpec.Gain.build();
             pane = document.querySelector('#' + nodeSpec.Gain.label + 'Params');
-            pane.querySelector('input[name=gain]').min = node.gain.minValue * 100;
-            pane.querySelector('input[name=gain]').max = node.gain.maxValue * 100;
+            pane.querySelector('input[name=gain]').min = node.gain.minValue * GAIN_SCALE;
+            pane.querySelector('input[name=gain]').max = node.gain.maxValue * GAIN_SCALE;
             pane.querySelector('input[name=gain]').addEventListener('change', function(event) {
-                selectedPatch.node.gain.value = event.target.value / 100;
+                selectedPatch.node.gain.value = event.target.value / GAIN_SCALE;
             });
         }
         function biquadFilter() {
@@ -638,10 +641,10 @@
                 pane.querySelector('label[name=detune]').innerText = event.target.value;
                 selectedPatch.node.detune.value = event.target.value;
             });
-            pane.querySelector('input[name=Q]').min = node.Q.minValue;
-            pane.querySelector('input[name=Q]').max = node.Q.maxValue;
+            pane.querySelector('input[name=Q]').min = node.Q.minValue * Q_SCALE;
+            pane.querySelector('input[name=Q]').max = node.Q.maxValue * Q_SCALE;
             pane.querySelector('input[name=Q]').addEventListener('change', function(event) {
-                selectedPatch.node.Q.value = event.target.value;
+                selectedPatch.node.Q.value = event.target.value / Q_SCALE;
             });
             pane.querySelector('input[name=gain]').min = node.gain.minValue;
             pane.querySelector('input[name=gain]').max = node.gain.maxValue;
@@ -664,11 +667,11 @@
             var node, pane;
             node = nodeSpec.Delay.build();
             pane = document.querySelector('#' + nodeSpec.Delay.label + 'Params');
-            pane.querySelector('input[name=delayTime]').min = node.delayTime.minValue * 1000;
-            pane.querySelector('input[name=delayTime]').max = node.delayTime.maxValue * 1000;
+            pane.querySelector('input[name=delayTime]').min = node.delayTime.minValue * DELAY_TIME_SCALE;
+            pane.querySelector('input[name=delayTime]').max = node.delayTime.maxValue * DELAY_TIME_SCALE;
             pane.querySelector('input[name=delayTime]').addEventListener('change', function(event) {
-                pane.querySelector('label[name=delayTime]').innerText = event.target.value / 1000;
-                selectedPatch.node.delayTime.value = event.target.value / 1000;
+                pane.querySelector('label[name=delayTime]').innerText = event.target.value / DELAY_TIME_SCALE;
+                selectedPatch.node.delayTime.value = event.target.value / DELAY_TIME_SCALE;
             });
         }
         function audioDestination() {
@@ -692,19 +695,19 @@
             pane.querySelector('input[name=detune]').value = patch.node.detune.value;
             pane.querySelector('label[name=detune]').innerText = patch.node.detune.value;
         } else if (patch.nodeType === 'Gain') {
-            pane.querySelector('input[name=gain]').value = patch.node.gain.value * 100;
+            pane.querySelector('input[name=gain]').value = patch.node.gain.value * GAIN_SCALE;
         } else if (patch.nodeType === 'BiquadFilter') {
             pane.querySelector('input[value=' + patch.node.type + ']').checked = 'checked';
             pane.querySelector('input[name=frequency]').value = patch.node.frequency.value;
             pane.querySelector('label[name=frequency]').innerText = patch.node.frequency.value;
             pane.querySelector('input[name=detune]').value = patch.node.detune.value;
             pane.querySelector('label[name=detune]').innerText = patch.node.detune.value;
-            pane.querySelector('input[name=Q]').value = patch.node.Q.value;
+            pane.querySelector('input[name=Q]').value = patch.node.Q.value * Q_SCALE;
             pane.querySelector('input[name=gain]').value = patch.node.gain.value;
         } else if (patch.nodeType === 'Convolver') {
             pane.querySelector('input[value=' + patch.node.normalize + ']').checked = 'checked';
         } else if (patch.nodeType === 'Delay') {
-            pane.querySelector('input[name=delayTime]').value = patch.node.delayTime.value * 1000;
+            pane.querySelector('input[name=delayTime]').value = patch.node.delayTime.value * DELAY_TIME_SCALE;
             pane.querySelector('label[name=delayTime]').innerText = patch.node.delayTime.value;
         }
     }
