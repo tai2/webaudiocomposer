@@ -529,8 +529,8 @@
             .setStrokeStyle(2)
             .moveTo(outputX, outputY)
             .bezierCurveTo(
-                    outputX + 100, outputY,
-                    inputX - 100, inputY,
+                    outputX + Math.min(100, Math.abs(outputX - inputX)), outputY,
+                    inputX - Math.min(100, Math.abs(outputY - inputY)), inputY,
                     inputX, inputY);
     }
 
