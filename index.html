@@ -41,7 +41,8 @@
                 width: 250px;
                 float: right;
                 height: 100%;
-                background-image: linear-gradient(#bbb, #999)
+                background-image: linear-gradient(#bbb, #999);
+                overflow: scroll;
             }
 
             div.paramPane {
@@ -64,16 +65,16 @@
                 <label><input type="radio" name="type" value="sawtooth"></input> sawtooth</label><br>
                 <label><input type="radio" name="type" value="triangle"></input> triangle</label><br>
                 <h3>frequency</h3>
-                <input type="range" name="frequency" min="1" max="3000" value="440"></input>
-                <label name="frequencyLabel">44100</label> Hz
+                <input type="range" name="frequency"></input>
+                <label name="frequency"></label> Hz
                 <h3>detune</h3>
-                <input type="range" name="detune" min="0" max="1000" value="0"></input>
-                <label name="detuneLabel"></label> cents
+                <input type="range" name="detune"></input>
+                <label name="detune"></label> cents
             </div>
             <div id="gainParams" class="paramPane">
                 <a href="https://developer.mozilla.org/en-US/docs/Web/API/GainNode">GainNode</a>
                 <h3>gain</h3>
-                <input type="range" name="gain" min="0" max="100" value="1.0"></input>
+                <input type="range" name="gain"></input>
             </div>
             <div id="channelSplitterParams" class="paramPane">
                 <a href="https://developer.mozilla.org/en-US/docs/Web/API/ChannelSplitterNode">ChannelSplitterNode</a>
@@ -81,10 +82,32 @@
             <div id="channelMergerParams" class="paramPane">
                 <a href="https://developer.mozilla.org/en-US/docs/Web/API/ChannelMergerNode">ChannelMergerNode</a>
             </div>
-            <div id="audioDestinationParams" class="paramPane">
+            <div id="biquadFilterParams" class="paramPane">
                 <a href="https://developer.mozilla.org/en-US/docs/Web/API/AudioDestinationNode">AudioDestinationNode</a>
+                <h3>type</h3>
+                <label><input type="radio" name="type" value="lowpass" checked="checked"></input> lowpass</label><br>
+                <label><input type="radio" name="type" value="highpass"></input> highpass</label><br>
+                <label><input type="radio" name="type" value="bandpass"></input> bandpass</label><br>
+                <label><input type="radio" name="type" value="lowshelf"></input> lowshelf</label><br>
+                <label><input type="radio" name="type" value="highshelf"></input> highshelf</label><br>
+                <label><input type="radio" name="type" value="peaking"></input> peaking</label><br>
+                <label><input type="radio" name="type" value="notch"></input> notch</label><br>
+                <label><input type="radio" name="type" value="allpass"></input> allpass</label><br>
+                <h3>frequency</h3>
+                <input type="range" name="frequency"></input>
+                <label name="frequency"></label> Hz
+                <h3>detune</h3>
+                <input type="range" name="detune"></input>
+                <label name="detune"></label> cents
+                <h3>Q</h3>
+                <input type="range" name="Q"></input>
+                <h3>gain</h3>
+                <input type="range" name="gain"></input>
+            </div>
+            <div id="audioDestinationParams" class="paramPane">
+                <a href="https://developer.mozilla.org/en-US/docs/Web/API/BiquadFilterNode">AudioDestinationNode</a>
                 <h3>maxChannelCount</h3>
-                <label name="maxChannelCountLabel"></label>
+                <label name="maxChannelCount"></label>
             </div>
         </div>
         <div id="workspace">
