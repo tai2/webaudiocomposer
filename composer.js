@@ -91,6 +91,7 @@
     function setupStage() {
         var type, patch, workspace;
         
+        window.AudioContext = window.AudioContext || window.webkitAudioContext;
         audioContext = new AudioContext();
         mediaNode = audioContext.createMediaElementSource(document.getElementById('music'));
         workspace = document.getElementById('workspace');
