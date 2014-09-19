@@ -4,15 +4,19 @@
     var REMOVE_BUTTON_SIZE = 8;
     var PATCH_WIDTH = 100;
     var PATCH_HEIGHT = 80;
+    var MONITOR_WIDTH = 64;
+    var MONITOR_HEIGHT = 40;
     var GAIN_SCALE = 100;
     var Q_SCALE = 10000;
     var DELAY_TIME_SCALE = 1000;
     var ATTACK_SCALE = 1000;
     var RELEASE_SCALE = 1000;
     var PLAYBACK_RATE_SCALE = 100;
+    var FFT_SIZE = 64;
 
     var stage, stockArea, compositeArea, activeConnection;
     var audioContext, mediaNode,  graphics;
+    var freqBuffer = new Uint8Array(FFT_SIZE / 2);
     var selectedPatch = null;
 
     var nodeSpec = {
@@ -98,9 +102,19 @@
                 return node;
             }
         },
+        Analyser: {
+            label : 'analyser',
+            stockPos : {x : 300, y : 150},
+            maxInstance : Number.MAX_VALUE,
+            build : function() {
+                var node = audioContext.createAnalyser();
+                node.fftSize = FFT_SIZE;
+                return node;
+            }
+        },
         AudioDestination : {
             label : 'dest',
-            stockPos : {x : 300, y : 150},
+            stockPos : {x : 420, y : 150},
             maxInstance : 1,
             build : function() { return audioContext.destination; }
         }
@@ -209,6 +223,19 @@
 
     function onTick(event) {
         var i, j, k, patch, inputPort, outputPort, op, ip;
+
+        for (i = 0; i < compositeArea.patches.getNumChildren(); i++) {
+            patch = compositeArea.patches.children[i];
+            if (patch.nodeType === 'Analyser') {
+                patch.node.getByteFrequencyData(freqBuffer);
+                patch.monitor.graphics.clear().beginStroke('#FFFF66').setStrokeStyle(2);
+                for (j = 0; j < freqBuffer.length; j++) {
+                    patch.monitor.graphics
+                        .moveTo(2 * j, MONITOR_HEIGHT)
+                        .lineTo(2 * j, MONITOR_HEIGHT * (1.0 - freqBuffer[j] / 255.0));
+                }
+            }
+        }
 
         stage.update();
 
@@ -444,7 +471,9 @@
         patch.getInputPortUnderPoint = getInputPortUnderPoint;
 
         patch.background = new Shape();
-        patch.background.graphics.beginFill(bgColor()).drawRoundRect(-PATCH_WIDTH / 2, -PATCH_HEIGHT / 2, PATCH_WIDTH, PATCH_HEIGHT, 5);
+        patch.background.graphics
+            .beginFill(bgColor())
+            .drawRoundRect(-PATCH_WIDTH / 2, -PATCH_HEIGHT / 2, PATCH_WIDTH, PATCH_HEIGHT, 5);
         patch.addChild(patch.background);
 
         patch.nameLabel = new Text(spec.label, 'normal 18px sanserif', '#444');
@@ -490,6 +519,17 @@
                 label.y = y - 4;
                 patch.addChild(label);
             }
+        }
+
+        if (type === 'Analyser') {
+            patch.background.graphics
+                .beginFill('black')
+                .drawRect(-MONITOR_WIDTH / 2, -MONITOR_HEIGHT / 2 + 5, MONITOR_WIDTH, MONITOR_HEIGHT);
+
+            patch.monitor = new Shape();
+            patch.monitor.x = -MONITOR_WIDTH / 2;
+            patch.monitor.y = -MONITOR_HEIGHT / 2 + 5;
+            patch.addChild(patch.monitor);
         }
 
         Tween.get(patch).to({alpha : 1.0}, 200).call(function() {
