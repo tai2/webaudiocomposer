@@ -7,6 +7,8 @@
     var GAIN_SCALE = 100;
     var Q_SCALE = 10000;
     var DELAY_TIME_SCALE = 1000;
+    var ATTACK_SCALE = 1000;
+    var RELEASE_SCALE = 1000;
 
     var stage, stockArea, compositeArea, activeConnection;
     var audioContext, mediaNode,  graphics;
@@ -61,9 +63,15 @@
             maxInstance : Number.MAX_VALUE,
             build : function() { return audioContext.createDelay(5); }
         },
+        DynamicsCompressor : {
+            label : 'compress',
+            stockPos : {x : 60, y : 150},
+            maxInstance : Number.MAX_VALUE,
+            build : function() { return audioContext.createDynamicsCompressor(); }
+        },
         AudioDestination : {
             label : 'dest',
-            stockPos : {x : 60, y : 150},
+            stockPos : {x : 180, y : 150},
             maxInstance : 1,
             build : function() { return audioContext.destination; }
         }
@@ -674,6 +682,46 @@
                 selectedPatch.node.delayTime.value = event.target.value / DELAY_TIME_SCALE;
             });
         }
+        function compress() {
+            var node, pane;
+            node = nodeSpec.DynamicsCompressor.build();
+            pane = document.querySelector('#' + nodeSpec.DynamicsCompressor.label + 'Params');
+            pane.querySelector('input[name=threshold]').min = node.threshold.minValue;
+            pane.querySelector('input[name=threshold]').max = node.threshold.maxValue;
+            pane.querySelector('input[name=threshold]').addEventListener('change', function(event) {
+                pane.querySelector('label[name=threshold]').innerText = event.target.value;
+                selectedPatch.node.threshold.value = event.target.value;
+            });
+            pane.querySelector('input[name=knee]').min = node.knee.minValue;
+            pane.querySelector('input[name=knee]').max = node.knee.maxValue;
+            pane.querySelector('input[name=knee]').addEventListener('change', function(event) {
+                pane.querySelector('label[name=knee]').innerText = event.target.value;
+                selectedPatch.node.knee.value = event.target.value;
+            });
+            pane.querySelector('input[name=ratio]').min = node.ratio.minValue;
+            pane.querySelector('input[name=ratio]').max = node.ratio.maxValue;
+            pane.querySelector('input[name=ratio]').addEventListener('change', function(event) {
+                pane.querySelector('label[name=ratio]').innerText = event.target.value;
+                selectedPatch.node.ratio.value = event.target.value;
+            });
+            pane.querySelector('input[name=reduction]').min = node.reduction.minValue;
+            pane.querySelector('input[name=reduction]').max = node.reduction.maxValue;
+            pane.querySelector('input[name=reduction]').addEventListener('change', function(event) {
+                selectedPatch.node.reduction.value = event.target.value;
+            });
+            pane.querySelector('input[name=attack]').min = node.attack.minValue * ATTACK_SCALE;
+            pane.querySelector('input[name=attack]').max = node.attack.maxValue * ATTACK_SCALE;
+            pane.querySelector('input[name=attack]').addEventListener('change', function(event) {
+                pane.querySelector('label[name=attack]').innerText = event.target.value / ATTACK_SCALE;
+                selectedPatch.node.attack.value = event.target.value / ATTACK_SCALE;
+            });
+            pane.querySelector('input[name=release]').min = node.release.minValue * RELEASE_SCALE;
+            pane.querySelector('input[name=release]').max = node.release.maxValue * RELEASE_SCALE;
+            pane.querySelector('input[name=release]').addEventListener('change', function(event) {
+                pane.querySelector('label[name=release]').innerText = event.target.value / RELEASE_SCALE;
+                selectedPatch.node.release.value = event.target.value / RELEASE_SCALE;
+            });
+        }
         function audioDestination() {
             document.querySelector('#destParams label[name=maxChannelCount]').innerText = audioContext.destination.maxChannelCount;
         }
@@ -683,6 +731,7 @@
         biquadFilter();
         convolver();
         delay();
+        compress();
         audioDestination();
     }
 
@@ -709,6 +758,18 @@
         } else if (patch.nodeType === 'Delay') {
             pane.querySelector('input[name=delayTime]').value = patch.node.delayTime.value * DELAY_TIME_SCALE;
             pane.querySelector('label[name=delayTime]').innerText = patch.node.delayTime.value;
+        } else if (patch.nodeType === 'DynamicsCompressor') {
+            pane.querySelector('input[name=threshold]').value = patch.node.threshold.value;
+            pane.querySelector('label[name=threshold]').innerText = patch.node.threshold.value;
+            pane.querySelector('input[name=knee]').value = patch.node.knee.value;
+            pane.querySelector('label[name=knee]').innerText = patch.node.knee.value;
+            pane.querySelector('input[name=ratio]').value = patch.node.ratio.value;
+            pane.querySelector('label[name=ratio]').innerText = patch.node.ratio.value;
+            pane.querySelector('input[name=reduction]').value = patch.node.reduction.value;
+            pane.querySelector('input[name=attack]').value = patch.node.attack.value * ATTACK_SCALE;
+            pane.querySelector('label[name=attack]').innerText = patch.node.attack.value;
+            pane.querySelector('input[name=release]').value = patch.node.release.value * RELEASE_SCALE;
+            pane.querySelector('label[name=release]').innerText = patch.node.release.value;
         }
     }
 
