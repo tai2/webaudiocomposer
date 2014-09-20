@@ -33,7 +33,7 @@
             maxInstance : Number.MAX_VALUE,
             build : function() {
                 var node = audioContext.createOscillator();
-                node.start();
+                node.start(0);
                 return node;
             }
         },
