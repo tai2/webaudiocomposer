@@ -136,52 +136,51 @@
         }
         function onDrop(event) {
             var files = event.dataTransfer.files;
-            var local = compositeArea.globalToLocal(
-                    event.hasOwnProperty('offsetX') ? event.offsetX : event.layerX,
-                    event.hasOwnProperty('offsetY') ? event.offsetY : event.layerY);
-            var patch, reader, loading;
+            var eventX = event.hasOwnProperty('offsetX') ? event.offsetX : event.layerX;
+            var eventY = event.hasOwnProperty('offsetX') ? event.offsetY : event.layerY;
+            var areaLocal, patchesLocal, patch, reader, loading;
 
-            if (0 < files.length) {
-                if (files[0].type.match('audio/.*')) {
-                    if (compositeArea.getBounds().includes(local.x, local.y)) {
-                        patch = Patch('AudioBufferSource', 'composite');
-                        patch.x = local.x;
-                        patch.y = local.y;
-                        patch.mouseEnabled = false;
-                        compositeArea.patches.addChild(patch);
+            areaLocal = compositeArea.globalToLocal(eventX, eventY);
+            if (0 < files.length && files[0].type.match('audio/.*') &&
+                    compositeArea.getBounds().includes(areaLocal.x, areaLocal.y)) {
 
-                        loading = new Text('loading', 'normal 18px sanserif', '#fff');
-                        loading.x = -(patch.getBounds().width - loading.getBounds().width) / 2;
-                        loading.y = -loading.getBounds().height / 2;
-                        loading.fadeOut = function() {
-                            Tween.get(loading).to({alpha: 0}, 200).call(loading.fadeIn);
-                        }
-                        loading.fadeIn = function() {
-                            Tween.get(loading).to({alpha: 1}, 200).call(loading.fadeOut);
-                        }
-                        loading.fadeOut();
-                        patch.addChild(loading);
+                patchesLocal = compositeArea.patches.globalToLocal(eventX, eventY);
+                patch = Patch('AudioBufferSource', 'composite');
+                patch.x = patchesLocal.x;
+                patch.y = patchesLocal.y;
+                patch.mouseEnabled = false;
+                compositeArea.patches.addChild(patch);
 
-                        reader = new FileReader();
-                        reader.readAsArrayBuffer(files[0]);
-                        reader.onload = function(event) {
-                            audioContext.decodeAudioData(
-                                    event.target.result,
-                                    function(buffer) {
-                                        patch.removeChild(loading);
-                                        patch.mouseEnabled = true;
-                                        patch.node.buffer = buffer;
-                                        patch.node.start(0);
-                                    },
-                                    function() {
-                                        console.log('decoding error.');
-                                    });
-                        }
-                    }
-                    event.stopPropagation();
-                    event.preventDefault();
+                loading = new Text('loading', 'normal 18px sanserif', '#fff');
+                loading.x = -(patch.getBounds().width - loading.getBounds().width) / 2;
+                loading.y = -loading.getBounds().height / 2;
+                loading.fadeOut = function() {
+                    Tween.get(loading).to({alpha: 0}, 200).call(loading.fadeIn);
+                }
+                loading.fadeIn = function() {
+                    Tween.get(loading).to({alpha: 1}, 200).call(loading.fadeOut);
+                }
+                loading.fadeOut();
+                patch.addChild(loading);
+
+                reader = new FileReader();
+                reader.readAsArrayBuffer(files[0]);
+                reader.onload = function(event) {
+                    audioContext.decodeAudioData(
+                            event.target.result,
+                            function(buffer) {
+                                patch.removeChild(loading);
+                                patch.mouseEnabled = true;
+                                patch.node.buffer = buffer;
+                                patch.node.start(0);
+                            },
+                            function() {
+                                console.log('decoding error.');
+                            });
                 }
             }
+            event.stopPropagation();
+            event.preventDefault();
         }
         
         window.AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -222,6 +221,7 @@
     function CompositeArea(width, height) {
         var area, selectedPane = null;
         var graphics = new createjs.Graphics();
+        var prevX, prevY;
 
         function getPatchUnderPoint(x, y) {
             var patch, i, local, result = null;
@@ -258,6 +258,16 @@
             }
 
             event.preventDefault();
+        }
+        function onMouseDown(event) {
+            prevX = event.stageX;
+            prevY = event.stageY;
+        }
+        function onPressMove(event) {
+            area.patches.x += (event.stageX - prevX);
+            area.patches.y += (event.stageY - prevY);
+            prevX = event.stageX;
+            prevY = event.stageY;
         }
         function patchCount(type) {
             return area.patches.children
@@ -321,6 +331,8 @@
         area.resize = resize;
         area.drawConnections = drawConnections;
         area.addEventListener('click', onClick);
+        area.addEventListener('mousedown', onMouseDown);
+        area.addEventListener('pressmove', onPressMove);
 
         // This shape is needed for correctly tracking mouse event.
         area.background = new Shape();
@@ -469,21 +481,22 @@
             patch.y = event.stageY;
         }
         function onPressUp1(event) {
-            var local, returnPos, bounds, newPatch;
+            var areaLocal, patchesLocal, returnPos, bounds, newPatch;
 
             patch.removeEventListener('pressup', onPressUp1);
             patch.removeEventListener('pressmove', onPressMove1);
 
-            local = compositeArea.globalToLocal(event.stageX, event.stageY);
-            if (compositeArea.getBounds().includes(local.x, local.y) &&
+            areaLocal = compositeArea.globalToLocal(event.stageX, event.stageY);
+            if (compositeArea.getBounds().includes(areaLocal.x, areaLocal.y) &&
                 compositeArea.patchCount(type) < nodeSpec[type].maxInstance) {
 
                 patch.removeEventListener('mousedown', onMouseDown1);
                 patch.addEventListener('pressmove', onPressMove2);
                 patch.addEventListener('pressup', onPressUp2);
 
-                patch.x = local.x;
-                patch.y = local.y;
+                patchesLocal = compositeArea.patches.globalToLocal(event.stageX, event.stageY);
+                patch.x = patchesLocal.x;
+                patch.y = patchesLocal.y;
                 stage.removeChild(patch);
                 compositeArea.patches.addChild(patch);
 
@@ -502,10 +515,12 @@
             }
         }
         function onPressMove2(event) {
-            var local = compositeArea.globalToLocal(event.stageX, event.stageY);
-            if (compositeArea.getBounds().includes(local.x, local.y)) {
-                patch.x = event.stageX;
-                patch.y = event.stageY;
+            var areaLocal = compositeArea.globalToLocal(event.stageX, event.stageY);
+            var patchesLocal;
+            if (compositeArea.getBounds().includes(areaLocal.x, areaLocal.y)) {
+                patchesLocal = compositeArea.patches.globalToLocal(event.stageX, event.stageY);
+                patch.x = patchesLocal.x;
+                patch.y = patchesLocal.y;
             }
 
             if (intersect(patch, compositeArea.trashbox)) {
@@ -513,6 +528,8 @@
             } else {
                 patch.alpha = 1.0;
             }
+
+            event.stopPropagation();
         }
         function onPressUp2(event) {
             if (patch.alpha !== 1.0) {
