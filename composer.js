@@ -156,7 +156,7 @@
                 patch.mouseEnabled = false;
                 compositeArea.patches.addChild(patch);
 
-                loading = new Text('loading', 'normal 18px sanserif', '#fff');
+                loading = new Text('loading', 'normal 16px sans-serif', '#fff');
                 loading.x = -(patch.getBounds().width - loading.getBounds().width) / 2;
                 loading.y = -loading.getBounds().height / 2;
                 loading.fadeOut = function() {
@@ -630,7 +630,7 @@
             .drawRoundRect(-PATCH_WIDTH / 2, -PATCH_HEIGHT / 2, PATCH_WIDTH, PATCH_HEIGHT, 5);
         patch.addChild(patch.background);
 
-        patch.nameLabel = new Text(spec.label, 'normal 18px sanserif', '#444');
+        patch.nameLabel = new Text(spec.label, '16px sans-serif', '#444');
         patch.nameLabel.x = patch.getBounds().x + (patch.getBounds().width - patch.nameLabel.getBounds().width) / 2;
         patch.nameLabel.y = patch.getBounds().y;
         patch.addChild(patch.nameLabel);

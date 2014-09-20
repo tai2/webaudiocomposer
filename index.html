@@ -3,6 +3,8 @@
     <head>
         <meta charset="utf-8">
         <title>Web Audio Composer</title>
+        <link href='http://fonts.googleapis.com/css?family=Oswald:700' rel='stylesheet' type='text/css'>
+        <link href='http://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
         <style>
 
             html {
@@ -15,14 +17,24 @@
                 margin: 0;
                 overflow: hidden;
                 height: 100%;
+                font-family: 'Open Sans', sans-serif;
             }
 
-            h1#title {
-                position: absolute;
-                left: 30px;
-                top: 30px;
+            h1 {
                 margin: 0;
-                font-size: 30pt;
+                text-align: center;
+                font-weight: bold;
+                font-size: 18pt;
+                font-family: 'Oswald', sans-serif;
+            }
+
+            h2 {
+                font-size: 12pt;
+                font-weight: bold;
+            }
+
+            a:link, a:visited {
+                color: black;
             }
 
             div#workspace {
@@ -38,14 +50,25 @@
             }
 
             div#inspector {
-                width: 250px;
+                padding-top: 10px;
                 float: right;
+                width: 250px;
                 height: 100%;
-                background-image: linear-gradient(#bbb, #999);
+                background-image: linear-gradient(#888, #666);
                 overflow: scroll;
+                font-size: 9pt;
+            }
+
+            footer {
+                position: absolute;
+                bottom: 10px;
+                right: 10px;
             }
 
             div.paramPane {
+                margin-top: 10px;
+                margin-bottom: 60px;
+                padding-left: 10px;
                 display: none;
             }
 
@@ -53,12 +76,13 @@
     </head>
     <body>
         <div id="inspector">
-            <h2>Inspector</h2>
+            <h1>Web Audio Composer</h1>
             <div id="mediaParams" class="paramPane">
-                <a href="https://developer.mozilla.org/en-US/docs/Web/API/MediaElementAudioSourceNode">MediaElementAudioSourceNode</a>
+                <h2><a href="https://developer.mozilla.org/en-US/docs/Web/API/MediaElementAudioSourceNode">MediaElementAudioSourceNode</a></h2>
+                Music: <a href="http://www.xlr8r.com/mp3/2014/09/mind-wave">"Mind wave" Rhythm Operator</a>
             </div>
             <div id="oscillatorParams" class="paramPane">
-                <a href="https://developer.mozilla.org/en-US/docs/Web/API/OscillatorNode">OscillatorNode</a>
+                <h2><a href="https://developer.mozilla.org/en-US/docs/Web/API/OscillatorNode">OscillatorNode</a></h2>
                 <h3>type</h3>
                 <label><input type="radio" name="type" value="sine"></input> sine</label><br>
                 <label><input type="radio" name="type" value="square"></input> square</label><br>
@@ -72,24 +96,24 @@
                 <label name="detune"></label> cents
             </div>
             <div id="bufferParams" class="paramPane">
-                <a href="https://developer.mozilla.org/en-US/docs/Web/API/AudioBufferSourceNode">AudioBufferSourceNode</a>
+                <h2><a href="https://developer.mozilla.org/en-US/docs/Web/API/AudioBufferSourceNode">AudioBufferSourceNode</a></h2>
                 <h3>playbackRate</h3>
                 <input type="range" name="playbackRate"></input>
                 x<label name="playbackRate"></label>
             </div>
             <div id="gainParams" class="paramPane">
-                <a href="https://developer.mozilla.org/en-US/docs/Web/API/GainNode">GainNode</a>
+                <h2><a href="https://developer.mozilla.org/en-US/docs/Web/API/GainNode">GainNode</a></h2>
                 <h3>gain</h3>
                 <input type="range" name="gain"></input>
             </div>
             <div id="splitParams" class="paramPane">
-                <a href="https://developer.mozilla.org/en-US/docs/Web/API/ChannelSplitterNode">ChannelSplitterNode</a>
+                <h2><a href="https://developer.mozilla.org/en-US/docs/Web/API/ChannelSplitterNode">ChannelSplitterNode</a></h2>
             </div>
             <div id="mergeParams" class="paramPane">
-                <a href="https://developer.mozilla.org/en-US/docs/Web/API/ChannelMergerNode">ChannelMergerNode</a>
+                <h2><a href="https://developer.mozilla.org/en-US/docs/Web/API/ChannelMergerNode">ChannelMergerNode</a></h2>
             </div>
             <div id="biquadParams" class="paramPane">
-                <a href="https://developer.mozilla.org/en-US/docs/Web/API/AudioDestinationNode">AudioDestinationNode</a>
+                <h2><a href="https://developer.mozilla.org/en-US/docs/Web/API/AudioDestinationNode">AudioDestinationNode</a></h2>
                 <h3>type</h3>
                 <label><input type="radio" name="type" value="lowpass"></input> lowpass</label><br>
                 <label><input type="radio" name="type" value="highpass"></input> highpass</label><br>
@@ -111,19 +135,19 @@
                 <input type="range" name="gain"></input>
             </div>
             <div id="convolveParams" class="paramPane">
-                <a href="https://developer.mozilla.org/en-US/docs/Web/API/ConvolverNode">ConvolverNode</a>
+                <h2><a href="https://developer.mozilla.org/en-US/docs/Web/API/ConvolverNode">ConvolverNode</a></h2>
                 <h3>normalize</h3>
                 <label><input type="radio" name="normalize" value="true"></input> On</label>
                 <label><input type="radio" name="normalize" value="false"></input> Off</label><br>
             </div>
             <div id="delayParams" class="paramPane">
-                <a href="https://developer.mozilla.org/en-US/docs/Web/API/DelayNode">DelayNode</a>
+                <h2><a href="https://developer.mozilla.org/en-US/docs/Web/API/DelayNode">DelayNode</a></h2>
                 <h3>delay</h3>
                 <input type="range" name="delayTime"></input>
                 <label name="delayTime"></label> sec
             </div>
             <div id="compressParams" class="paramPane">
-                <a href="https://developer.mozilla.org/en-US/docs/Web/API/DynamicsCompressorNode">DynamicsCompressorNode</a>
+                <h2><a href="https://developer.mozilla.org/en-US/docs/Web/API/DynamicsCompressorNode">DynamicsCompressorNode</a></h2>
                 <h3>threshold</h3>
                 <input type="range" name="threshold"></input>
                 <label name="threshold"></label> dB
@@ -143,23 +167,26 @@
                 <label name="release"></label> sec
             </div>
             <div id="shaperParams" class="paramPane">
-                <a href="https://developer.mozilla.org/en-US/docs/Web/API/WaveShaperNode">DelayNode</a>
+                <h2><a href="https://developer.mozilla.org/en-US/docs/Web/API/WaveShaperNode">DelayNode</a></h2>
                 <h3>oversample</h3>
                 <label><input type="radio" name="oversample" value="none"></input> none</label><br>
                 <label><input type="radio" name="oversample" value="2x"></input> 4x</label><br>
                 <label><input type="radio" name="oversample" value="4x"></input> 2x</label><br>
             </div>
             <div id="analyserParams" class="paramPane">
-                <a href="https://developer.mozilla.org/en-US/docs/Web/API/AnalyserNode">AnalyserNode</a>
+                <h2><a href="https://developer.mozilla.org/en-US/docs/Web/API/AnalyserNode">AnalyserNode</a></h2>
             </div>
             <div id="destParams" class="paramPane">
-                <a href="https://developer.mozilla.org/en-US/docs/Web/API/BiquadFilterNode">AudioDestinationNode</a>
+                <h2><a href="https://developer.mozilla.org/en-US/docs/Web/API/BiquadFilterNode">AudioDestinationNode</a></h2>
                 <h3>maxChannelCount</h3>
                 <label name="maxChannelCount"></label>
             </div>
+
+            <footer>
+                <a href="http://tai2.net">Taiju Muto</a> <a href="https://github.com/tai2/webaudiocomposer">GitHub</a>
+            </footer>
         </div>
         <div id="workspace">
-            <h1 id="title">Web Audio Composer</h1>
             <canvas id="mainStage"></canvas>
         </div>
         <audio id="music" src="music.mp3" autoplay loop></audio>
