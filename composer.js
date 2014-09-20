@@ -197,6 +197,11 @@
         stage.canvas.width = workspace.offsetWidth;
         stage.canvas.height = workspace.offsetHeight;
 
+        stage.message = new Text('You can drag and drop music file from desctop.', '12px sans-serif', '#bbb');
+        stage.message.x = 3;
+        stage.message.y = 3;
+        stage.addChild(stage.message);
+
         compositeArea = CompositeArea(stage.canvas.width, stage.canvas.height - STOCK_AREA_HEIGHT);
         compositeArea.x = 0;
         compositeArea.y = 0;
