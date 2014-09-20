@@ -130,7 +130,12 @@
         var workspace;
 
         function onDragOver(event) {
-            event.dataTransfer.dropEffect = 'copy';
+            var eventX = event.hasOwnProperty('offsetX') ? event.offsetX : event.layerX;
+            var eventY = event.hasOwnProperty('offsetX') ? event.offsetY : event.layerY;
+            var local = compositeArea.globalToLocal(eventX, eventY);
+            if (compositeArea.getBounds().includes(local.x, local.y)) {
+                event.dataTransfer.dropEffect = 'copy';
+            }
             event.stopPropagation();
             event.preventDefault();
         }
