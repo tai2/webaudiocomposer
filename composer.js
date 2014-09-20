@@ -281,6 +281,12 @@
                 }
             }
         }
+        function resize(width, height) {
+            area.setBounds(0, 0, width, height);
+            area.background.hitArea.graphics.beginFill('#000').drawRect(0, 0, width, height);
+            area.trashbox.x = width - 25;
+            area.trashbox.y = 5;
+        }
         function drawConnections() {
             var i, j, k, patch, inputPort, outputPort, op, ip;
 
@@ -312,6 +318,7 @@
         area.getPatchUnderPoint = getPatchUnderPoint;
         area.patchCount = patchCount;
         area.update = update;
+        area.resize = resize;
         area.drawConnections = drawConnections;
         area.addEventListener('click', onClick);
 
@@ -349,6 +356,7 @@
             prevX = event.stageX;
         }
         function update(delta) {
+            var areaWidth = area.getBounds().width, patchesWidth = area.patches.getBounds().width;
             area.patches.x += delta * vx;
             if (0 < vx) {
                 vx = Math.max(0, vx - DECEL * delta);
@@ -358,9 +366,9 @@
                 }
             } else {
                 vx = Math.min(0, vx + DECEL * delta);
-                if (area.patches.x + area.patches.getBounds().width < width) {
+                if (area.patches.x + patchesWidth < areaWidth) {
                     vx = 0;
-                    area.patches.x = width - area.patches.getBounds().width;
+                    area.patches.x = areaWidth - patchesWidth;
                 }
             }
             
@@ -370,15 +378,21 @@
             if (-10 > area.patches.x && -10 <= area.patches.prevX) {
                 Tween.get(area.leftArrow).to({alpha : ARROW_ALPHA}, 100);
             }
-            if (area.patches.x + area.patches.getBounds().width < width + 10 &&
-                area.patches.prevX + area.patches.getBounds().width >= width + 10) {
+            if (area.patches.x + patchesWidth < areaWidth + 10 &&
+                area.patches.prevX + patchesWidth >= areaWidth + 10) {
                 Tween.get(area.rightArrow).to({alpha : 0}, 100);
             }
-            if (area.patches.x + area.patches.getBounds().width >= width + 10 &&
-                area.patches.prevX + area.patches.getBounds().width < width + 10) {
+            if (area.patches.x + patchesWidth >= areaWidth + 10 &&
+                area.patches.prevX + patchesWidth < areaWidth + 10) {
                 Tween.get(area.rightArrow).to({alpha : ARROW_ALPHA}, 100);
             }
             area.patches.prevX = area.patches.x;
+        }
+        function resize(width, height) {
+            area.setBounds(0, 0, width, height);
+            area.background.graphics.clear().beginFill('#888').drawRect(0, 0, width, height);
+            area.rightArrow.x = area.getBounds().width - 5;
+            area.rightArrow.y = area.getBounds().height / 2;
         }
         function getStockables() {
             stockables = [];
@@ -392,6 +406,7 @@
 
         area = new Container();
         area.update = update;
+        area.resize = resize;
         area.setBounds(0, 0, width, height);
 
         area.background = new Shape();
@@ -1034,4 +1049,16 @@
 
     setupStage();
     setupViews();
+    window.addEventListener('resize', function(event) {
+        stage.canvas.width = workspace.offsetWidth;
+        stage.canvas.height = workspace.offsetHeight;
+
+        compositeArea.x = 0;
+        compositeArea.y = 0;
+        compositeArea.resize(stage.canvas.width, stage.canvas.height - STOCK_AREA_HEIGHT);
+        
+        stockArea.x = 0;
+        stockArea.y = stage.canvas.height - STOCK_AREA_HEIGHT;
+        stockArea.resize(stage.canvas.width, STOCK_AREA_HEIGHT);
+    });
 })();
