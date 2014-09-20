@@ -213,6 +213,72 @@
 
         stage.canvas.addEventListener('dragover', onDragOver);
         stage.canvas.addEventListener('drop', onDrop);
+
+        window.addEventListener('resize', function(event) {
+            stage.canvas.width = workspace.offsetWidth;
+            stage.canvas.height = workspace.offsetHeight;
+
+            compositeArea.x = 0;
+            compositeArea.y = 0;
+            compositeArea.resize(stage.canvas.width, stage.canvas.height - STOCK_AREA_HEIGHT);
+            
+            stockArea.x = 0;
+            stockArea.y = stage.canvas.height - STOCK_AREA_HEIGHT;
+            stockArea.resize(stage.canvas.width, STOCK_AREA_HEIGHT);
+        });
+    }
+
+    function setupComposition() {
+        var media, convolv, shaper, compress, analyser1, analyser2, analyser3, dest;
+
+        media = Patch('MediaElementAudioSource', 'composite');
+        media.x = compositeArea.getBounds().width / 2 - 3 * media.getBounds().width;
+        media.y = compositeArea.getBounds().height / 2;
+        compositeArea.patches.addChild(media);
+
+        dest = Patch('AudioDestination', 'composite');
+        dest.x = compositeArea.getBounds().width / 2 + 3 * dest.getBounds().width;
+        dest.y = compositeArea.getBounds().height / 2;
+        compositeArea.patches.addChild(dest);
+
+        convolve = Patch('Convolver', 'composite');
+        convolve.x = compositeArea.getBounds().width / 2 - convolve.getBounds().width;
+        convolve.y = compositeArea.getBounds().height / 2 - 2 * convolve.getBounds().height;
+        compositeArea.patches.addChild(convolve);
+
+        shaper = Patch('WaveShaper', 'composite');
+        shaper.x = compositeArea.getBounds().width / 2 - convolve.getBounds().width;
+        shaper.y = compositeArea.getBounds().height / 2 + 2 * convolve.getBounds().height;
+        compositeArea.patches.addChild(shaper);
+
+        compress = Patch('DynamicsCompressor', 'composite');
+        compress.x = compositeArea.getBounds().width / 2 - compress.getBounds().width;
+        compress.y = compositeArea.getBounds().height / 2;
+        compress.node.threshold.value = -60;
+        compositeArea.patches.addChild(compress);
+
+        analyser1 = Patch('Analyser', 'composite');
+        analyser1.x = compositeArea.getBounds().width / 2 + 1 * analyser1.getBounds().width;
+        analyser1.y = compositeArea.getBounds().height / 2;
+        compositeArea.patches.addChild(analyser1);
+
+        analyser2 = Patch('Analyser', 'composite');
+        analyser2.x = compositeArea.getBounds().width / 2 + 1 * analyser2.getBounds().width;
+        analyser2.y = compositeArea.getBounds().height / 2 - 2*  analyser2.getBounds().height;
+        compositeArea.patches.addChild(analyser2);
+
+        analyser3 = Patch('Analyser', 'composite');
+        analyser3.x = compositeArea.getBounds().width / 2 + 1 * analyser3.getBounds().width;
+        analyser3.y = compositeArea.getBounds().height / 2 + 2 * analyser3.getBounds().height;
+        compositeArea.patches.addChild(analyser3);
+
+        media.outputPorts.children[0].connect(compress.inputPorts.children[0]);
+        compress.outputPorts.children[0].connect(analyser1.inputPorts.children[0]);
+        analyser1.outputPorts.children[0].connect(dest.inputPorts.children[0]);
+        media.outputPorts.children[0].connect(convolve.inputPorts.children[0]);
+        convolve.outputPorts.children[0].connect(analyser2.inputPorts.children[0]);
+        media.outputPorts.children[0].connect(shaper.inputPorts.children[0]);
+        shaper.outputPorts.children[0].connect(analyser3.inputPorts.children[0]);
     }
 
     function onTick(event) {
@@ -1097,17 +1163,6 @@
     }
 
     setupStage();
+    setupComposition();
     setupViews();
-    window.addEventListener('resize', function(event) {
-        stage.canvas.width = workspace.offsetWidth;
-        stage.canvas.height = workspace.offsetHeight;
-
-        compositeArea.x = 0;
-        compositeArea.y = 0;
-        compositeArea.resize(stage.canvas.width, stage.canvas.height - STOCK_AREA_HEIGHT);
-        
-        stockArea.x = 0;
-        stockArea.y = stage.canvas.height - STOCK_AREA_HEIGHT;
-        stockArea.resize(stage.canvas.width, STOCK_AREA_HEIGHT);
-    });
 })();
