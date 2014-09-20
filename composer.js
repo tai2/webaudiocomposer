@@ -13,7 +13,7 @@
     var ATTACK_SCALE = 1000;
     var RELEASE_SCALE = 1000;
     var PLAYBACK_RATE_SCALE = 100;
-    var FFT_SIZE = 64;
+    var FFT_SIZE = 1024;
 
     var stage, stockArea, compositeArea, activeConnection;
     var audioContext, mediaNode;
@@ -266,16 +266,17 @@
         }
         function update(delta) {
             var i, j, patch;
+            var lineNum = MONITOR_WIDTH / 2, stride = freqBuffer.length / lineNum;
 
             for (i = 0; i < compositeArea.patches.getNumChildren(); i++) {
                 patch = compositeArea.patches.children[i];
                 if (patch.nodeType === 'Analyser') {
                     patch.node.getByteFrequencyData(freqBuffer);
-                    patch.monitor.graphics.clear().beginStroke('#FFFF66').setStrokeStyle(2);
-                    for (j = 0; j < freqBuffer.length; j++) {
+                    patch.monitor.graphics.clear().beginStroke('#ff6').setStrokeStyle(2);
+                    for (j = 0; j < lineNum; j++) {
                         patch.monitor.graphics
                             .moveTo(2 * j, MONITOR_HEIGHT)
-                            .lineTo(2 * j, MONITOR_HEIGHT * (1.0 - freqBuffer[j] / 255.0));
+                            .lineTo(2 * j, MONITOR_HEIGHT * (1.0 - freqBuffer[stride * j] / 255.0));
                     }
                 }
             }
