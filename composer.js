@@ -1018,13 +1018,13 @@
             pane.querySelector('input[name=attack]').min = node.attack.minValue * ATTACK_SCALE;
             pane.querySelector('input[name=attack]').max = node.attack.maxValue * ATTACK_SCALE;
             pane.querySelector('input[name=attack]').addEventListener('change', function(event) {
-                pane.querySelector('label[name=attack]').innerText = event.target.value / ATTACK_SCALE;
+                pane.querySelector('label[name=attack]').innerText = (event.target.value / ATTACK_SCALE).toPrecision(4);
                 selectedPatch.node.attack.value = event.target.value / ATTACK_SCALE;
             });
             pane.querySelector('input[name=release]').min = node.release.minValue * RELEASE_SCALE;
             pane.querySelector('input[name=release]').max = node.release.maxValue * RELEASE_SCALE;
             pane.querySelector('input[name=release]').addEventListener('change', function(event) {
-                pane.querySelector('label[name=release]').innerText = event.target.value / RELEASE_SCALE;
+                pane.querySelector('label[name=release]').innerText = (event.target.value / RELEASE_SCALE).toPrecision(4);
                 selectedPatch.node.release.value = event.target.value / RELEASE_SCALE;
             });
         }
@@ -1088,9 +1088,9 @@
             pane.querySelector('label[name=ratio]').innerText = patch.node.ratio.value;
             pane.querySelector('input[name=reduction]').value = patch.node.reduction.value;
             pane.querySelector('input[name=attack]').value = patch.node.attack.value * ATTACK_SCALE;
-            pane.querySelector('label[name=attack]').innerText = patch.node.attack.value;
+            pane.querySelector('label[name=attack]').innerText = patch.node.attack.value.toPrecision(4);
             pane.querySelector('input[name=release]').value = patch.node.release.value * RELEASE_SCALE;
-            pane.querySelector('label[name=release]').innerText = patch.node.release.value;
+            pane.querySelector('label[name=release]').innerText = patch.node.release.value.toPrecision(4);
         } else if (patch.nodeType === 'WaveShaper') {
             pane.querySelector('input[value=\'' + patch.node.oversample + '\']').checked = 'checked';
         }
