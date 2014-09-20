@@ -1,9 +1,10 @@
 (function() {
-    var STOCK_AREA_HEIGHT = 200;
+    var STOCK_AREA_HEIGHT = 140;
     var PORT_RADIUS = 4;
     var REMOVE_BUTTON_SIZE = 8;
     var PATCH_WIDTH = 100;
     var PATCH_HEIGHT = 80;
+    var PATCH_MARGIN = 10;
     var MONITOR_WIDTH = 64;
     var MONITOR_HEIGHT = 40;
     var GAIN_SCALE = 100;
@@ -15,20 +16,20 @@
     var FFT_SIZE = 64;
 
     var stage, stockArea, compositeArea, activeConnection;
-    var audioContext, mediaNode,  graphics;
+    var audioContext, mediaNode;
     var freqBuffer = new Uint8Array(FFT_SIZE / 2);
     var selectedPatch = null;
 
     var nodeSpec = {
         MediaElementAudioSource : {
             label : 'media',
-            stockPos : {x : 60, y : 50},
+            pos : 0,
             maxInstance : 1,
             build : function() { return mediaNode; }
         },
         Oscillator : {
             label : 'oscillator',
-            stockPos : {x : 180, y : 50},
+            pos : 1,
             maxInstance : Number.MAX_VALUE,
             build : function() {
                 var node = audioContext.createOscillator();
@@ -38,7 +39,7 @@
         },
         AudioBufferSource : {
             label : 'buffer',
-            stockPos : null,
+            pos : null,
             maxInstance : Number.MAX_VALUE,
             build : function() {
                 var node = audioContext.createBufferSource();
@@ -48,31 +49,31 @@
         },
         Gain : {
             label : 'gain',
-            stockPos : {x : 300, y : 50},
+            pos : 2,
             maxInstance : Number.MAX_VALUE,
             build : function() { return audioContext.createGain(); }
         },
         ChannelSplitter : {
             label : 'split',
-            stockPos : {x : 420, y : 50},
+            pos : 3,
             maxInstance : Number.MAX_VALUE,
             build : function() { return audioContext.createChannelSplitter(); }
         },
         ChannelMerger : {
             label : 'merge',
-            stockPos : {x : 540, y : 50},
+            pos : 4,
             maxInstance : Number.MAX_VALUE,
             build : function() { return audioContext.createChannelMerger(); }
         },
         BiquadFilter : {
             label : 'biquad',
-            stockPos : {x : 660, y : 50},
+            pos : 5,
             maxInstance : Number.MAX_VALUE,
             build : function() { return audioContext.createBiquadFilter(); }
         },
         Convolver : {
             label : 'convolve',
-            stockPos : {x : 780, y : 50},
+            pos : 6,
             maxInstance : Number.MAX_VALUE,
             build : function() {
                 var node = audioContext.createConvolver();
@@ -82,19 +83,19 @@
         },
         Delay : {
             label : 'delay',
-            stockPos : {x : 900, y : 50},
+            pos : 7,
             maxInstance : Number.MAX_VALUE,
             build : function() { return audioContext.createDelay(5); }
         },
         DynamicsCompressor : {
             label : 'compress',
-            stockPos : {x : 60, y : 150},
+            pos : 8,
             maxInstance : Number.MAX_VALUE,
             build : function() { return audioContext.createDynamicsCompressor(); }
         },
         WaveShaper : {
             label : 'shaper',
-            stockPos : {x : 180, y : 150},
+            pos : 9,
             maxInstance : Number.MAX_VALUE,
             build : function() {
                 var node = audioContext.createWaveShaper();
@@ -104,7 +105,7 @@
         },
         Analyser: {
             label : 'analyser',
-            stockPos : {x : 300, y : 150},
+            pos : 10,
             maxInstance : Number.MAX_VALUE,
             build : function() {
                 var node = audioContext.createAnalyser();
@@ -114,7 +115,7 @@
         },
         AudioDestination : {
             label : 'dest',
-            stockPos : {x : 420, y : 150},
+            pos : 11,
             maxInstance : 1,
             build : function() { return audioContext.destination; }
         }
@@ -126,7 +127,7 @@
     }
 
     function setupStage() {
-        var type, patch, workspace;
+        var workspace;
 
         function onDragOver(event) {
             event.dataTransfer.dropEffect = 'copy';
@@ -202,17 +203,6 @@
         stockArea.y = stage.canvas.height - STOCK_AREA_HEIGHT;
         stage.addChild(stockArea);
 
-        for (type in nodeSpec) {
-            if (nodeSpec[type].stockPos) {
-                patch = Patch(type, 'stock');
-                patch.x = nodeSpec[type].stockPos.x;
-                patch.y = nodeSpec[type].stockPos.y;
-                stockArea.addChild(patch);
-            }
-        }
-
-        graphics = new createjs.Graphics();
-
         Ticker.timingMode = Ticker.RAF;
         Ticker.setFPS(60);
         Ticker.addEventListener('tick', onTick);
@@ -222,48 +212,16 @@
     }
 
     function onTick(event) {
-        var i, j, k, patch, inputPort, outputPort, op, ip;
-
-        for (i = 0; i < compositeArea.patches.getNumChildren(); i++) {
-            patch = compositeArea.patches.children[i];
-            if (patch.nodeType === 'Analyser') {
-                patch.node.getByteFrequencyData(freqBuffer);
-                patch.monitor.graphics.clear().beginStroke('#FFFF66').setStrokeStyle(2);
-                for (j = 0; j < freqBuffer.length; j++) {
-                    patch.monitor.graphics
-                        .moveTo(2 * j, MONITOR_HEIGHT)
-                        .lineTo(2 * j, MONITOR_HEIGHT * (1.0 - freqBuffer[j] / 255.0));
-                }
-            }
-        }
-
+        var delta = event.delta * 0.001;
+        compositeArea.update(delta);
+        stockArea.update(delta);
         stage.update();
-
-        graphics.clear();
-        if (activeConnection) {
-            drawConnection(graphics,
-                    activeConnection.outputX,
-                    activeConnection.outputY,
-                    activeConnection.inputX,
-                    activeConnection.inputY);
-        }
-        for (i = 0; i < compositeArea.patches.getNumChildren(); i++) {
-            patch = compositeArea.patches.children[i];
-            for (j = 0; j < patch.inputPorts.getNumChildren(); j++) {
-                inputPort = patch.inputPorts.children[j];
-                for (k = 0; k < inputPort.peers.length; k++) {
-                    outputPort = inputPort.peers[k];
-                    op = outputPort.localToGlobal(0, 0);
-                    ip = inputPort.localToGlobal(0, 0);
-                    drawConnection(graphics, op.x, op.y, ip.x, ip.y);
-                }
-            }
-        }
-        graphics.draw(stage.canvas.getContext('2d'));
+        compositeArea.drawConnections();
     }
 
     function CompositeArea(width, height) {
         var area, selectedPane = null;
+        var graphics = new createjs.Graphics();
 
         function getPatchUnderPoint(x, y) {
             var patch, i, local, result = null;
@@ -306,11 +264,54 @@
                 .map(function(patch) { return patch.nodeType === type; })
                 .reduce(function(prev, curr) { return prev + curr; }, 0);
         }
+        function update(delta) {
+            var i, j, patch;
+
+            for (i = 0; i < compositeArea.patches.getNumChildren(); i++) {
+                patch = compositeArea.patches.children[i];
+                if (patch.nodeType === 'Analyser') {
+                    patch.node.getByteFrequencyData(freqBuffer);
+                    patch.monitor.graphics.clear().beginStroke('#FFFF66').setStrokeStyle(2);
+                    for (j = 0; j < freqBuffer.length; j++) {
+                        patch.monitor.graphics
+                            .moveTo(2 * j, MONITOR_HEIGHT)
+                            .lineTo(2 * j, MONITOR_HEIGHT * (1.0 - freqBuffer[j] / 255.0));
+                    }
+                }
+            }
+        }
+        function drawConnections() {
+            var i, j, k, patch, inputPort, outputPort, op, ip;
+
+            graphics.clear();
+            if (activeConnection) {
+                drawConnection(graphics,
+                        activeConnection.outputX,
+                        activeConnection.outputY,
+                        activeConnection.inputX,
+                        activeConnection.inputY);
+            }
+            for (i = 0; i < compositeArea.patches.getNumChildren(); i++) {
+                patch = compositeArea.patches.children[i];
+                for (j = 0; j < patch.inputPorts.getNumChildren(); j++) {
+                    inputPort = patch.inputPorts.children[j];
+                    for (k = 0; k < inputPort.peers.length; k++) {
+                        outputPort = inputPort.peers[k];
+                        op = outputPort.localToGlobal(0, 0);
+                        ip = inputPort.localToGlobal(0, 0);
+                        drawConnection(graphics, op.x, op.y, ip.x, ip.y);
+                    }
+                }
+            }
+            graphics.draw(stage.canvas.getContext('2d'));
+        }
 
         area = new Container();
         area.setBounds(0, 0, width, height);
         area.getPatchUnderPoint = getPatchUnderPoint;
         area.patchCount = patchCount;
+        area.update = update;
+        area.drawConnections = drawConnections;
         area.addEventListener('click', onClick);
 
         // This shape is needed for correctly tracking mouse event.
@@ -332,13 +333,102 @@
 
     function StockArea(width, height) {
         var area;
+        var i, patch, stockables;
+        var vx = 0, prevX;
+        var DECEL = 400;
+        var ARROW_ALPHA = 0.7;
+        
+        function onMouseDown(event) {
+            vx = 0;
+            prevX = event.stageX;
+            event.stopPropagation();
+        }
+        function onPressMove(event) {
+            vx += 3.0 * (event.stageX - prevX);
+            prevX = event.stageX;
+        }
+        function update(delta) {
+            area.patches.x += delta * vx;
+            if (0 < vx) {
+                vx = Math.max(0, vx - DECEL * delta);
+                if (0 < area.patches.x) {
+                    vx = 0;
+                    area.patches.x = 0;
+                }
+            } else {
+                vx = Math.min(0, vx + DECEL * delta);
+                if (area.patches.x + area.patches.getBounds().width < width) {
+                    vx = 0;
+                    area.patches.x = width - area.patches.getBounds().width;
+                }
+            }
+            
+            if (-10 <= area.patches.x && -10 > area.patches.prevX) {
+                Tween.get(area.leftArrow).to({alpha : 0}, 100);
+            }
+            if (-10 > area.patches.x && -10 <= area.patches.prevX) {
+                Tween.get(area.leftArrow).to({alpha : ARROW_ALPHA}, 100);
+            }
+            if (area.patches.x + area.patches.getBounds().width < width + 10 &&
+                area.patches.prevX + area.patches.getBounds().width >= width + 10) {
+                Tween.get(area.rightArrow).to({alpha : 0}, 100);
+            }
+            if (area.patches.x + area.patches.getBounds().width >= width + 10 &&
+                area.patches.prevX + area.patches.getBounds().width < width + 10) {
+                Tween.get(area.rightArrow).to({alpha : ARROW_ALPHA}, 100);
+            }
+            area.patches.prevX = area.patches.x;
+        }
+        function getStockables() {
+            stockables = [];
+            for (type in nodeSpec) {
+                if (nodeSpec[type].pos !== null) {
+                    stockables.push(type);
+                }
+            }
+            return stockables;
+        }
 
         area = new Container();
+        area.update = update;
         area.setBounds(0, 0, width, height);
 
         area.background = new Shape();
-        area.background.graphics.beginFill('rgba(80,80,80, 0.5)').drawRect(0, 0, width, height);
+        area.background.graphics.beginFill('#888').drawRect(0, 0, width, height);
+        area.background.alpha = 0.3;
         area.addChild(area.background);
+
+        stockables = getStockables();
+        area.patches = new Container();
+        area.patches.x = 0;
+        area.patches.y = 0;
+        area.patches.prevX = 0;
+        area.patches.setBounds(0, 0, PATCH_MARGIN + stockables.length * (PATCH_WIDTH + PATCH_MARGIN), STOCK_AREA_HEIGHT);
+        area.addChild(area.patches);
+
+        area.rightArrow = new Shape();
+        area.rightArrow.graphics.beginFill('#fff').moveTo(0, 0).lineTo(-15, 15).lineTo(-15, -15);
+        area.rightArrow.alpha = ARROW_ALPHA;
+        area.rightArrow.x = area.getBounds().width - 5;
+        area.rightArrow.y = area.getBounds().height / 2;
+        area.addChild(area.rightArrow);
+
+        area.leftArrow = new Shape();
+        area.leftArrow.graphics.beginFill('#fff').moveTo(0, 0).lineTo(15, 15).lineTo(15, -15);
+        area.leftArrow.alpha = 0;
+        area.leftArrow.x = 5;
+        area.leftArrow.y = area.getBounds().height / 2;
+        area.addChild(area.leftArrow);
+
+        area.addEventListener('mousedown', onMouseDown);
+        area.addEventListener('pressmove', onPressMove);
+
+        for (i = 0; i < stockables.length; i++) {
+            patch = Patch(stockables[i], 'stock');
+            patch.x = patchCoord(nodeSpec[stockables[i]].pos).x;
+            patch.y = patchCoord(nodeSpec[stockables[i]].pos).y;
+            area.patches.addChild(patch);
+        }
 
         return area;
     }
@@ -349,7 +439,7 @@
         var spec = nodeSpec[type];
 
         function onMouseDown1(event) {
-            stockArea.removeChild(patch);
+            stockArea.patches.removeChild(patch);
 
             stage.addChild(patch);
             patch.x = event.stageX;
@@ -382,16 +472,16 @@
                 compositeArea.patches.addChild(patch);
 
                 newPatch = Patch(type, 'stock');
-                newPatch.x = spec.stockPos.x;
-                newPatch.y = spec.stockPos.y;
-                stockArea.addChild(newPatch);
+                newPatch.x = patchCoord(spec.pos).x;
+                newPatch.y = patchCoord(spec.pos).y;
+                stockArea.patches.addChild(newPatch);
             } else {
-                returnPos = stockArea.localToGlobal(spec.stockPos.x, spec.stockPos.y);
+                returnPos = stockArea.patches.localToGlobal(patchCoord(spec.pos).x, patchCoord(spec.pos).y);
                 Tween.get(patch).to({x : returnPos.x, y : returnPos.y}, 400, Ease.elasticOut).call(function() {
                     stage.removeChild(patch);
-                    stockArea.addChild(patch);
-                    patch.x = spec.stockPos.x;
-                    patch.y = spec.stockPos.y;
+                    stockArea.patches.addChild(patch);
+                    patch.x = patchCoord(spec.pos).x;
+                    patch.y = patchCoord(spec.pos).y;
                 });
             }
         }
@@ -690,6 +780,13 @@
         var obj2_top = obj2_pos.y, obj2_bottom = obj2_pos.y + obj2.getBounds().height;
         return ((obj1_left <= obj2_left && obj2_left < obj1_right) || (obj1_left <= obj2_right && obj2_right < obj1_right)) &&
                ((obj1_top <= obj2_top && obj2_top < obj1_bottom) || (obj1_top <= obj2_bottom && obj2_bottom < obj1_bottom));
+    }
+
+    function patchCoord(pos) {
+        return {
+            x: PATCH_MARGIN + PATCH_WIDTH / 2 + (PATCH_WIDTH + PATCH_MARGIN) * pos,
+            y: PATCH_HEIGHT / 2 + (STOCK_AREA_HEIGHT - PATCH_HEIGHT) / 2
+        };
     }
 
     // c.f. http://stackoverflow.com/a/22538980
