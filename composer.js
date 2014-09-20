@@ -226,7 +226,7 @@
     function CompositeArea(width, height) {
         var area, selectedPane = null;
         var graphics = new createjs.Graphics();
-        var prevX, prevY;
+        var prevX, prevY, blinkFlag;
 
         function getPatchUnderPoint(x, y) {
             var patch, i, local, result = null;
@@ -348,6 +348,27 @@
         area.trashbox = new Bitmap('trashbox.png');
         area.trashbox.x = width - 25;
         area.trashbox.y = 5;
+        area.trashbox.startBlink = function() {
+            function fadeOut() {
+                if (blinkFlag) {
+                    Tween.get(area.trashbox).to({alpha: 0}, 250).call(fadeIn);
+                } else {
+                    area.trashbox.alpha = 1;
+                }
+            }
+            function fadeIn() {
+                if (blinkFlag) {
+                    Tween.get(area.trashbox).to({alpha: 1}, 250).call(fadeOut);
+                } else {
+                    area.trashbox.alpha = 1;
+                }
+            }
+            blinkFlag = true;
+            fadeOut();
+        };
+        area.trashbox.stopBlink = function() {
+            blinkFlag = false;
+        };
         area.addChild(area.trashbox);
 
         area.patches = new Container();
@@ -496,6 +517,7 @@
                 compositeArea.patchCount(type) < nodeSpec[type].maxInstance) {
 
                 patch.removeEventListener('mousedown', onMouseDown1);
+                patch.addEventListener('mousedown', onMouseDown2);
                 patch.addEventListener('pressmove', onPressMove2);
                 patch.addEventListener('pressup', onPressUp2);
 
@@ -519,6 +541,9 @@
                 });
             }
         }
+        function onMouseDown2(event) {
+            compositeArea.trashbox.startBlink();
+        }
         function onPressMove2(event) {
             var areaLocal = compositeArea.globalToLocal(event.stageX, event.stageY);
             var patchesLocal;
@@ -537,6 +562,7 @@
             event.stopPropagation();
         }
         function onPressUp2(event) {
+            compositeArea.trashbox.stopBlink();
             if (patch.alpha !== 1.0) {
                 remove();
             }
@@ -664,6 +690,7 @@
             if (place === 'stock') {
                 patch.addEventListener('mousedown', onMouseDown1);
             } else {
+                patch.addEventListener('mousedown', onMouseDown2);
                 patch.addEventListener('pressmove', onPressMove2);
                 patch.addEventListener('pressup', onPressUp2);
             }
