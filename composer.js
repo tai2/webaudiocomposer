@@ -361,8 +361,8 @@
                     patch.monitor.graphics.clear().beginStroke('#ff6').setStrokeStyle(2);
                     for (j = 0; j < lineNum; j++) {
                         patch.monitor.graphics
-                            .moveTo(2 * j, MONITOR_HEIGHT)
-                            .lineTo(2 * j, MONITOR_HEIGHT * (1.0 - freqBuffer[stride * j] / 255.0));
+                            .moveTo(2 * j + 1, MONITOR_HEIGHT)
+                            .lineTo(2 * j + 1, MONITOR_HEIGHT * (1.0 - freqBuffer[stride * j] / 255.0));
                     }
                 }
             }
