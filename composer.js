@@ -16,7 +16,7 @@
     var FFT_SIZE = 1024;
 
     var stage, stockArea, compositeArea, activeConnection;
-    var audioContext, mediaNode;
+    var audioContext, micStream, mediaNode;
     var freqBuffer = new Uint8Array(FFT_SIZE / 2);
     var selectedPatch = null;
 
@@ -27,9 +27,15 @@
             maxInstance : 1,
             build : function() { return mediaNode; }
         },
+        MediaStreamAudioSource : {
+            label : 'microphone',
+            pos : 1,
+            maxInstance : Number.MAX_VALUE,
+            build : function() { return audioContext.createMediaStreamSource(micStream); }
+        },
         Oscillator : {
             label : 'oscillator',
-            pos : 1,
+            pos : 2,
             maxInstance : Number.MAX_VALUE,
             build : function() {
                 var node = audioContext.createOscillator();
@@ -49,31 +55,31 @@
         },
         Gain : {
             label : 'gain',
-            pos : 2,
+            pos : 3,
             maxInstance : Number.MAX_VALUE,
             build : function() { return audioContext.createGain(); }
         },
         ChannelSplitter : {
             label : 'split',
-            pos : 3,
+            pos : 4,
             maxInstance : Number.MAX_VALUE,
             build : function() { return audioContext.createChannelSplitter(); }
         },
         ChannelMerger : {
             label : 'merge',
-            pos : 4,
+            pos : 5,
             maxInstance : Number.MAX_VALUE,
             build : function() { return audioContext.createChannelMerger(); }
         },
         BiquadFilter : {
             label : 'biquad',
-            pos : 5,
+            pos : 6,
             maxInstance : Number.MAX_VALUE,
             build : function() { return audioContext.createBiquadFilter(); }
         },
         Convolver : {
             label : 'convolve',
-            pos : 6,
+            pos : 7,
             maxInstance : Number.MAX_VALUE,
             build : function() {
                 var node = audioContext.createConvolver();
@@ -83,19 +89,19 @@
         },
         Delay : {
             label : 'delay',
-            pos : 7,
+            pos : 8,
             maxInstance : Number.MAX_VALUE,
             build : function() { return audioContext.createDelay(5); }
         },
         DynamicsCompressor : {
             label : 'compress',
-            pos : 8,
+            pos : 9,
             maxInstance : Number.MAX_VALUE,
             build : function() { return audioContext.createDynamicsCompressor(); }
         },
         WaveShaper : {
             label : 'shaper',
-            pos : 9,
+            pos : 10,
             maxInstance : Number.MAX_VALUE,
             build : function() {
                 var node = audioContext.createWaveShaper();
@@ -105,7 +111,7 @@
         },
         Analyser: {
             label : 'analyser',
-            pos : 10,
+            pos : 11,
             maxInstance : Number.MAX_VALUE,
             build : function() {
                 var node = audioContext.createAnalyser();
@@ -115,7 +121,7 @@
         },
         AudioDestination : {
             label : 'dest',
-            pos : 11,
+            pos : 12,
             maxInstance : 1,
             build : function() { return audioContext.destination; }
         }
@@ -187,10 +193,14 @@
             event.stopPropagation();
             event.preventDefault();
         }
+
         
         window.AudioContext = window.AudioContext || window.webkitAudioContext;
         audioContext = new AudioContext();
+
+        document.getElementById('music').play();
         mediaNode = audioContext.createMediaElementSource(document.getElementById('music'));
+
         workspace = document.getElementById('workspace');
 
         stage = new Stage('mainStage');
@@ -1167,7 +1177,26 @@
         }
     }
 
-    setupStage();
-    setupComposition();
-    setupViews();
+    navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+    navigator.getUserMedia({audio : true}, function(stream) {
+        micStream = stream;
+
+        setupStage();
+        setupComposition();
+        setupViews();
+    }, function (err) {
+        var type;
+
+        delete nodeSpec['MediaStreamAudioSource'];
+        for (type in nodeSpec) {
+            if (type !== 'MediaElementAudioSource') {
+                nodeSpec[type].pos--;
+            }
+        }
+
+        setupStage();
+        setupComposition();
+        setupViews();
+    });
+
 })();
