@@ -207,7 +207,7 @@
         stage.canvas.width = workspace.offsetWidth;
         stage.canvas.height = workspace.offsetHeight;
 
-        stage.message = new Text('You can drag and drop music file from desctop.', '12px sans-serif', '#bbb');
+        stage.message = new Text('Drag and drop music file from desktop. Double click to disconnect.', '12px sans-serif', '#bbb');
         stage.message.x = 3;
         stage.message.y = 3;
         stage.addChild(stage.message);
