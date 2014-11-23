@@ -262,8 +262,8 @@
         compositeArea.patches.addChild(convolve);
 
         shaper = Patch('WaveShaper', 'composite');
-        shaper.x = compositeArea.getBounds().width / 2 - convolve.getBounds().width;
-        shaper.y = compositeArea.getBounds().height / 2 + 2 * convolve.getBounds().height;
+        shaper.x = compositeArea.getBounds().width / 2 - shaper.getBounds().width;
+        shaper.y = compositeArea.getBounds().height / 2 + 2 * shaper.getBounds().height;
         compositeArea.patches.addChild(shaper);
 
         compress = Patch('DynamicsCompressor', 'composite');
